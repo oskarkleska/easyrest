@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertAll
 
 data class EasyResponse(val response: Response, val requirements: Requirements?) {
 
-    fun validate() {
+    fun validate(): EasyResponse {
         if (requirements == null) throw RuntimeException("No requirements to validate!")
         assertAll(
             "Checking if response meets specification",
@@ -15,16 +15,16 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
                     } else {
                         response.statusCode == requirements.statusCode
                     }
-                )
+                ) { "Wrong status code, expected ${requirements.statusCode} but got ${response.statusCode}" }
             },
             {
                 assert(
                     if (requirements.responseTime == null) {
                         true
                     } else {
-                        response.time <= requirements.responseTime)
-                    }
-                )
+                        response.time <= requirements.responseTime
+                    },
+                ) { "Too long response time, expected ${requirements.responseTime} but got ${response.time}" }
             },
             {
                 assert(
@@ -33,7 +33,12 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
                     } else {
                         true
                     }
-                )
+                ) { "Schema does not meet requirements, check response" }
             })
+        return this;
+    }
+
+    fun andCastAs(clazz: Any) : Any {
+        return this.response.`as`(clazz::class.java)
     }
 }
