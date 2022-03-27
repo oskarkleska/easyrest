@@ -1,7 +1,11 @@
+import Utils.retry
 import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
+import io.restassured.http.Header
 import io.restassured.http.Headers
 import io.restassured.http.Method
+import io.restassured.specification.RequestSpecification
+import java.util.*
 
 data class Endpoint(
     val method: Method,
@@ -14,21 +18,39 @@ data class Endpoint(
     var queryParams: Map<String, Any>? = null,
     var requirements: Requirements? = null
 ) {
+
+    private fun getRequestSpecification(): RequestSpecification {
+        val rsp = given()
+        if (headers != null) rsp.headers(headers)
+        if (body != null) rsp.body(body)
+        if (cookies != null) rsp.cookies(cookies)
+        if (queryParams != null) rsp.queryParams(queryParams)
+        if (Random().nextBoolean()) rsp.log().all()
+        rsp.baseUri(protocol.protocolPart + baseUri)
+        return rsp
+    }
+
     fun call(): EasyResponse {
-        val response = given()
-            .baseUri(protocol.protocolPart + baseUri)
-            .log().all()
-            .headers(headers ?: Headers())
-            .cookies(cookies?: Cookies())
-            .queryParams(queryParams ?: mapOf<String, Any>())
-            .body(body ?: "")
+        val response = getRequestSpecification()
             .request(method, path ?: "")
             .then().log().all().and().extract().response()
         return EasyResponse(response, requirements)
     }
 
+    fun callAndValidate(): EasyResponse {
+        return retry{
+             call().validate()
+        }
+    }
+
     fun setHeaders(headers: Headers): Endpoint {
         this.headers = headers
+        return this
+    }
+
+    fun overrideHeader(header: Header): Endpoint {
+        this.headers?.removeAll { it.hasSameNameAs(header) }
+        this.headers?.asList()?.add(header)
         return this
     }
 
@@ -42,35 +64,40 @@ data class Endpoint(
         return this
     }
 
-    fun setQueryParams(queryParams: Map<String, Any>?) : Endpoint {
+    fun setQueryParams(queryParams: Map<String, Any>?): Endpoint {
         this.queryParams = queryParams
         return this
     }
 
-    fun setBody(body: Any) : Endpoint {
+    fun setBody(body: Any): Endpoint {
         this.body = body
         return this
     }
 
-    fun overrideRequirements(requirements: Requirements?) : Endpoint {
+    fun overrideRequirements(requirements: Requirements?): Endpoint {
         this.requirements = requirements
         return this
     }
 
-    fun setParamsForPath(vararg params: String) {
-        if(path==null) throw Exceptions.NoParamsException("No params in path to parse, they should begin with `$` sign")
-        var paramsLeft = params.size
+    fun setParamsForPath(vararg params: String): Endpoint {
+        if (path == null) throw Exceptions.NoParamsException("No params in path to parse, they should begin with `$` sign")
         var paramsCount = 0
-        path!!.split("/").forEach{
-            if(it[0].toString() == "$") {
-                it = params[paramsCount]
+        var newPath = ""
+        path!!.split("/").forEach {
+            if (it[0].toString() == "$") {
+                try {
+                    newPath += params[paramsCount] + "/"
+                } catch (e: IndexOutOfBoundsException) {
+                    throw Exception("Insufficient amount of params passed to set for path $path, only got ${params.size} params\n + $e")
+                }
                 paramsCount++
+            } else {
+                newPath += "$it/"
             }
         }
-        //todo fix this shit :this:
+        path = newPath
+        return this
     }
-
-
 }
 
 data class Requirements(
