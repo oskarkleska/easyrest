@@ -1,3 +1,4 @@
+import Utils.replaceIfExists
 import Utils.retry
 import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
@@ -7,16 +8,16 @@ import io.restassured.http.Method
 import io.restassured.specification.RequestSpecification
 import java.util.*
 
-data class Endpoint(
-    val method: Method,
-    val protocol: Protocol,
-    val baseUri: String,
+abstract class Endpoint(
+    private val method: Method,
+    private val protocol: Protocol,
+    private val baseUri: String,
     var path: String? = null,
     var cookies: Cookies? = null,
     var headers: Headers? = null,
     var body: Any? = null,
-    var queryParams: Map<String, Any>? = null,
-    var requirements: Requirements? = null
+    private var queryParams: Map<String, Any>? = null,
+    private var requirements: Requirements? = null
 ) {
 
     private fun getRequestSpecification(): RequestSpecification {
@@ -25,7 +26,7 @@ data class Endpoint(
         if (body != null) rsp.body(body)
         if (cookies != null) rsp.cookies(cookies)
         if (queryParams != null) rsp.queryParams(queryParams)
-        if (Random().nextBoolean()) rsp.log().all()
+        if (Random().nextBoolean()) rsp.log().all() // TODO: add config for logging
         rsp.baseUri(protocol.protocolPart + baseUri)
         return rsp
     }
@@ -38,8 +39,18 @@ data class Endpoint(
     }
 
     fun callAndValidate(): EasyResponse {
-        return retry{
-             call().validate()
+        return retry {
+            call().validate()
+        }
+    }
+
+    /**
+     * Call, check & cast.
+     * Retries call, validation and casting according to config.
+     */
+    fun <T : Any> ccc(clazz: Class<T>): T {
+        return retry {
+            call().validate().andCastAs(clazz)
         }
     }
 
@@ -80,21 +91,31 @@ data class Endpoint(
     }
 
     fun setParamsForPath(vararg params: String): Endpoint {
-        if (path == null) throw Exceptions.NoParamsException("No params in path to parse, they should begin with `$` sign")
+        if (path == null) throw Exceptions.NoParamsException("Path is null")
         var paramsCount = 0
         var newPath = ""
-        path!!.split("/").forEach {
-            if (it[0].toString() == "$") {
+        path!!.split("/").filter { it.isNotEmpty() }.forEach {
+            if (newPath.isNotEmpty()) newPath += "/"
+            if (it[0].toString() == "@") {
                 try {
-                    newPath += params[paramsCount] + "/"
+                    newPath += params[paramsCount]
                 } catch (e: IndexOutOfBoundsException) {
                     throw Exception("Insufficient amount of params passed to set for path $path, only got ${params.size} params\n + $e")
                 }
                 paramsCount++
             } else {
-                newPath += "$it/"
+                newPath += it
             }
         }
+        path = newPath
+        return this
+    }
+
+    fun setParamsForPath(params: Map<String, String>): Endpoint {
+        if (path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
+        var newPath: String = path!!
+        if (newPath[0] == "/".toCharArray()[0]) newPath = newPath.substring(1, newPath.length)
+        params.forEach { (t, u) -> newPath = newPath.replace("@", "").replaceIfExists(t, u) }
         path = newPath
         return this
     }

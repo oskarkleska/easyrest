@@ -38,7 +38,7 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
         return this;
     }
 
-    fun andCastAs(clazz: Any) : Any {
-        return this.response.`as`(clazz::class.java)
+    fun <T: Any> andCastAs(clazz: Class<T>) : T {
+        return this.response.`as`(clazz)
     }
 }

@@ -13,4 +13,9 @@ object Utils {
         }
         return block()
     }
+
+    fun String.replaceIfExists(s1: String, s2: String) : String {
+        if(this.indexOf(s1) == -1) throw Exceptions.StringNotFoundException("$s1 not found in $this")
+        return this.replace(s1,s2)
+    }
 }
