@@ -5,24 +5,24 @@ import kotlin.test.DefaultAsserter.assertEquals
 
 class UnitTest {
 
-    class Dummy : Endpoint(Method.GET, Protocol.HTTPS, "zzz")
+    private val dummy = Endpoint<String>(Method.GET, Protocol.HTTPS, "zzz")
 
     @Test
     fun checkSettingParamsForPathWithVarargs() {
         assertEquals(
             "Setting params for path is broken",
             "asd/zxc",
-            Dummy().setPath("asd/@p1").setParamsForPath("zxc").path
+            dummy.setPath("asd/@p1").setParamsForPath("zxc").path
         )
         assertEquals(
             "Setting params for path is broken",
             "asd/zxc",
-            Dummy().setPath("/asd/@p1").setParamsForPath("zxc").path
+            dummy.setPath("/asd/@p1").setParamsForPath("zxc").path
         )
         assertEquals(
             "Setting params for path is broken",
             "zxc/asd/qqq",
-            Dummy().setPath("@p1/asd/@p2").setParamsForPath("zxc", "qqq").path
+            dummy.setPath("@p1/asd/@p2").setParamsForPath("zxc", "qqq").path
         )
     }
 
@@ -31,24 +31,24 @@ class UnitTest {
         assertEquals(
             "Setting params for path is broken",
             "asd/zxc",
-            Dummy().setPath("asd/@p1").setParamsForPath(mapOf("p1" to "zxc")).path
+            dummy.setPath("asd/@p1").setParamsForPath(mapOf("p1" to "zxc")).path
         )
         assertEquals(
             "Setting params for path is broken",
             "asd/zxc",
-            Dummy().setPath("/asd/@p1").setParamsForPath(mapOf("p1" to "zxc")).path
+            dummy.setPath("/asd/@p1").setParamsForPath(mapOf("p1" to "zxc")).path
         )
         assertEquals(
             "Setting params for path is broken",
             "zxc/asd/qqq",
-            Dummy().setPath("@p1/asd/@p2").setParamsForPath(mapOf("p1" to "zxc", "p2" to "qqq")).path
+            dummy.setPath("@p1/asd/@p2").setParamsForPath(mapOf("p1" to "zxc", "p2" to "qqq")).path
         )
     }
 
     @Test
     fun checkIfReplaceIfExistsWorks() {
         assertThrows<Exceptions.StringNotFoundException>("p2 not found in asd/@p1") {
-            Dummy().setPath("asd/@p1").setParamsForPath(mapOf("p2" to "zxc"))
+            dummy.setPath("asd/@p1").setParamsForPath(mapOf("p2" to "zxc"))
         }
     }
 }

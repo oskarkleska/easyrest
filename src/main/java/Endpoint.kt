@@ -8,7 +8,7 @@ import io.restassured.http.Method
 import io.restassured.specification.RequestSpecification
 import java.util.*
 
-abstract class Endpoint(
+open class Endpoint<T : Any>(
     private val method: Method,
     protocol: Protocol,
     baseUri: String,
@@ -18,7 +18,33 @@ abstract class Endpoint(
     var body: Any? = null,
     private var queryParams: Map<String, Any>? = null,
     private var requirements: Requirements? = null,
+    var classToken: Class<T>
 ) {
+    companion object {
+        inline operator fun <reified T : Any> invoke(
+            method: Method,
+            protocol: Protocol,
+            baseUri: String,
+            path: String? = null,
+            cookies: Cookies? = null,
+            headers: Headers? = null,
+            body: Any? = null,
+            queryParams: Map<String, Any>? = null,
+            requirements: Requirements? = null
+        ): Endpoint<T> = Endpoint(
+            method = method,
+            protocol = protocol,
+            baseUri = baseUri,
+            path = path,
+            cookies = cookies,
+            headers = headers,
+            body = body,
+            queryParams = queryParams,
+            requirements = requirements,
+            classToken = T::class.java
+        )
+    }
+
     private var rsp: RequestSpecification = given()
 
     init {
@@ -30,14 +56,13 @@ abstract class Endpoint(
         rsp.baseUri(protocol.protocolPart + baseUri)
     }
 
-
     /**
      * Call, check & cast.
      * Retries call, validation and casting according to config.
      */
-    fun <T:Any> ccc(clazz: Class<T>): T {
+    fun ccc(): T {
         return retry {
-            call().validate().andCastAs(clazz)
+            call().validate().andCastAs(classToken)
         }
     }
 
@@ -54,43 +79,43 @@ abstract class Endpoint(
         }
     }
 
-    fun setHeaders(headers: Headers): Endpoint {
+    fun setHeaders(headers: Headers): Endpoint<T> {
         this.headers = headers
         return this
     }
 
-    fun overrideHeader(header: Header): Endpoint {
+    fun overrideHeader(header: Header): Endpoint<T> {
         this.headers?.removeAll { it.hasSameNameAs(header) }
         this.headers?.asList()?.add(header)
         return this
     }
 
-    fun setCookies(cookies: Cookies): Endpoint {
+    fun setCookies(cookies: Cookies): Endpoint<T> {
         this.cookies = cookies
         return this
     }
 
-    fun setPath(path: String): Endpoint {
+    fun setPath(path: String): Endpoint<T> {
         this.path = path
         return this
     }
 
-    fun setQueryParams(queryParams: Map<String, Any>?): Endpoint {
+    fun setQueryParams(queryParams: Map<String, Any>?): Endpoint<T> {
         this.queryParams = queryParams
         return this
     }
 
-    fun setBody(body: Any): Endpoint {
+    fun setBody(body: Any): Endpoint<T> {
         this.body = body
         return this
     }
 
-    fun overrideRequirements(requirements: Requirements?): Endpoint {
+    fun overrideRequirements(requirements: Requirements?): Endpoint<T> {
         this.requirements = requirements
         return this
     }
 
-    fun setParamsForPath(vararg params: String): Endpoint {
+    fun setParamsForPath(vararg params: String): Endpoint<T> {
         if (path == null) throw Exceptions.NoParamsException("Path is null")
         var paramsCount = 0
         var newPath = ""
@@ -111,7 +136,7 @@ abstract class Endpoint(
         return this
     }
 
-    fun setParamsForPath(params: Map<String, String>): Endpoint {
+    fun setParamsForPath(params: Map<String, String>): Endpoint<T> {
         if (path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
         var newPath: String = path!!
         if (newPath[0] == "/".toCharArray()[0]) newPath = newPath.substring(1, newPath.length)
