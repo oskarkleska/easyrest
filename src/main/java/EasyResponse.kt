@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertAll
 data class EasyResponse(val response: Response, val requirements: Requirements?) {
 
     fun validate(): EasyResponse {
-        if (requirements == null) throw RuntimeException("No requirements to validate!")
+        if (requirements == null) return this
         assertAll(
             "Checking if response meets specification",
             {
@@ -35,7 +35,7 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
                     }
                 ) { "Schema does not meet requirements, check response" }
             })
-        return this;
+        return this
     }
 
     fun <T: Any> andCastAs(clazz: Class<T>) : T {

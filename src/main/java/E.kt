@@ -4,21 +4,24 @@ import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
 import io.restassured.http.Header
 import io.restassured.http.Headers
+import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
 import java.util.*
 
-open class Endpoint<ReturnedType : Any>(
+open class E<ReturnedType : Any>(
     val model: EndpointModel,
     var classToken: Class<ReturnedType>
 ) {
     companion object {
         inline operator fun <reified ReturnedType : Any> invoke(
             model: EndpointModel
-        ): Endpoint<ReturnedType> = Endpoint(
+        ): E<ReturnedType> = E(
             model = model,
             classToken = ReturnedType::class.java
         )
     }
+
+    private lateinit var response: Response
 
     private var rsp: RequestSpecification = given()
 
@@ -27,7 +30,7 @@ open class Endpoint<ReturnedType : Any>(
         if (model.body != null) rsp.body(model.body)
         if (model.cookies != null) rsp.cookies(model.cookies)
         if (model.queryParams != null) rsp.queryParams(model.queryParams)
-        if (Random().nextBoolean()) rsp.log().all() // TODO: add config for logging
+        rsp.log().all() // TODO: add config for logging
         rsp.baseUri(model.protocol.protocolPart + model.baseUri)
     }
 
@@ -36,13 +39,18 @@ open class Endpoint<ReturnedType : Any>(
      * Retries call, validation and casting according to config.
      */
     fun ccc(): ReturnedType {
-        return retry {
-            call().validate().andCastAs(classToken)
+            return callAndValidate().andCastAs(classToken)
+    }
+
+    fun getResponse(): Response {
+        if (!this::response.isInitialized) {
+             throw Exceptions.EndpointNotCalledYetException()
         }
+        return response
     }
 
     fun call(): EasyResponse {
-        val response = rsp
+        response = rsp
             .request(model.method, model.path ?: "")
             .then().log().all().and().extract().response()
         return EasyResponse(response, model.requirements)
@@ -54,43 +62,43 @@ open class Endpoint<ReturnedType : Any>(
         }
     }
 
-    fun setHeaders(headers: Headers): Endpoint<ReturnedType> {
+    fun setHeaders(headers: Headers): E<ReturnedType> {
         this.model.headers = headers
         return this
     }
 
-    fun overrideHeader(header: Header): Endpoint<ReturnedType> {
+    fun overrideHeader(header: Header): E<ReturnedType> {
         this.model.headers?.removeAll { it.hasSameNameAs(header) }
         this.model.headers?.asList()?.add(header)
         return this
     }
 
-    fun setCookies(cookies: Cookies): Endpoint<ReturnedType> {
+    fun setCookies(cookies: Cookies): E<ReturnedType> {
         this.model.cookies = cookies
         return this
     }
 
-    fun setPath(path: String): Endpoint<ReturnedType> {
+    fun setPath(path: String): E<ReturnedType> {
         this.model.path = path
         return this
     }
 
-    fun setQueryParams(queryParams: Map<String, Any>?): Endpoint<ReturnedType> {
+    fun setQueryParams(queryParams: Map<String, Any>?): E<ReturnedType> {
         this.model.queryParams = queryParams
         return this
     }
 
-    fun setBody(body: Any): Endpoint<ReturnedType> {
+    fun setBody(body: Any): E<ReturnedType> {
         this.model.body = body
         return this
     }
 
-    fun overrideRequirements(requirements: Requirements?): Endpoint<ReturnedType> {
+    fun overrideRequirements(requirements: Requirements?): E<ReturnedType> {
         this.model.requirements = requirements
         return this
     }
 
-    fun setParamsForPath(vararg params: String): Endpoint<ReturnedType> {
+    fun setParamsForPath(vararg params: String): E<ReturnedType> {
         if (model.path == null) throw Exceptions.NoParamsException("Path is null")
         var paramsCount = 0
         var newPath = ""
@@ -111,7 +119,7 @@ open class Endpoint<ReturnedType : Any>(
         return this
     }
 
-    fun setParamsForPath(params: Map<String, String>): Endpoint<ReturnedType> {
+    fun setParamsForPath(params: Map<String, String>): E<ReturnedType> {
         if (model.path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
         var newPath: String = model.path!!
         if (newPath[0] == "/".toCharArray()[0]) newPath = newPath.substring(1, newPath.length)

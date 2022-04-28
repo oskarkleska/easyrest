@@ -1,4 +1,5 @@
 object Exceptions {
-    class NoParamsException(msg: String): RuntimeException(msg)
-    class StringNotFoundException(msg: String): RuntimeException(msg)
+    class NoParamsException(msg: String? = null) : RuntimeException(msg)
+    class StringNotFoundException(msg: String? = null) : RuntimeException(msg)
+    class EndpointNotCalledYetException(msg: String? = null) : RuntimeException(msg)
 }
