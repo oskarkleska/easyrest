@@ -10,29 +10,39 @@ import java.util.*
 
 abstract class Endpoint(
     private val method: Method,
-    private val protocol: Protocol,
-    private val baseUri: String,
+    protocol: Protocol,
+    baseUri: String,
     var path: String? = null,
     var cookies: Cookies? = null,
     var headers: Headers? = null,
     var body: Any? = null,
     private var queryParams: Map<String, Any>? = null,
-    private var requirements: Requirements? = null
+    private var requirements: Requirements? = null,
 ) {
+    private var rsp: RequestSpecification = given()
 
-    private fun getRequestSpecification(): RequestSpecification {
-        val rsp = given()
+    init {
         if (headers != null) rsp.headers(headers)
         if (body != null) rsp.body(body)
         if (cookies != null) rsp.cookies(cookies)
         if (queryParams != null) rsp.queryParams(queryParams)
         if (Random().nextBoolean()) rsp.log().all() // TODO: add config for logging
         rsp.baseUri(protocol.protocolPart + baseUri)
-        return rsp
+    }
+
+
+    /**
+     * Call, check & cast.
+     * Retries call, validation and casting according to config.
+     */
+    fun <T:Any> ccc(clazz: Class<T>): T {
+        return retry {
+            call().validate().andCastAs(clazz)
+        }
     }
 
     fun call(): EasyResponse {
-        val response = getRequestSpecification()
+        val response = rsp
             .request(method, path ?: "")
             .then().log().all().and().extract().response()
         return EasyResponse(response, requirements)
@@ -41,16 +51,6 @@ abstract class Endpoint(
     fun callAndValidate(): EasyResponse {
         return retry {
             call().validate()
-        }
-    }
-
-    /**
-     * Call, check & cast.
-     * Retries call, validation and casting according to config.
-     */
-    fun <T : Any> ccc(clazz: Class<T>): T {
-        return retry {
-            call().validate().andCastAs(clazz)
         }
     }
 
