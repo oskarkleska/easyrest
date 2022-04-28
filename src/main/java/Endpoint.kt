@@ -4,63 +4,38 @@ import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
 import io.restassured.http.Header
 import io.restassured.http.Headers
-import io.restassured.http.Method
 import io.restassured.specification.RequestSpecification
 import java.util.*
 
-open class Endpoint<T : Any>(
-    private val method: Method,
-    protocol: Protocol,
-    baseUri: String,
-    var path: String? = null,
-    var cookies: Cookies? = null,
-    var headers: Headers? = null,
-    var body: Any? = null,
-    private var queryParams: Map<String, Any>? = null,
-    private var requirements: Requirements? = null,
-    var classToken: Class<T>
+open class Endpoint<ReturnedType : Any>(
+    val model: EndpointModel,
+    var classToken: Class<ReturnedType>
 ) {
     companion object {
-        inline operator fun <reified T : Any> invoke(
-            method: Method,
-            protocol: Protocol,
-            baseUri: String,
-            path: String? = null,
-            cookies: Cookies? = null,
-            headers: Headers? = null,
-            body: Any? = null,
-            queryParams: Map<String, Any>? = null,
-            requirements: Requirements? = null
-        ): Endpoint<T> = Endpoint(
-            method = method,
-            protocol = protocol,
-            baseUri = baseUri,
-            path = path,
-            cookies = cookies,
-            headers = headers,
-            body = body,
-            queryParams = queryParams,
-            requirements = requirements,
-            classToken = T::class.java
+        inline operator fun <reified ReturnedType : Any> invoke(
+            model: EndpointModel
+        ): Endpoint<ReturnedType> = Endpoint(
+            model = model,
+            classToken = ReturnedType::class.java
         )
     }
 
     private var rsp: RequestSpecification = given()
 
     init {
-        if (headers != null) rsp.headers(headers)
-        if (body != null) rsp.body(body)
-        if (cookies != null) rsp.cookies(cookies)
-        if (queryParams != null) rsp.queryParams(queryParams)
+        if (model.headers != null) rsp.headers(model.headers)
+        if (model.body != null) rsp.body(model.body)
+        if (model.cookies != null) rsp.cookies(model.cookies)
+        if (model.queryParams != null) rsp.queryParams(model.queryParams)
         if (Random().nextBoolean()) rsp.log().all() // TODO: add config for logging
-        rsp.baseUri(protocol.protocolPart + baseUri)
+        rsp.baseUri(model.protocol.protocolPart + model.baseUri)
     }
 
     /**
      * Call, check & cast.
      * Retries call, validation and casting according to config.
      */
-    fun ccc(): T {
+    fun ccc(): ReturnedType {
         return retry {
             call().validate().andCastAs(classToken)
         }
@@ -68,9 +43,9 @@ open class Endpoint<T : Any>(
 
     fun call(): EasyResponse {
         val response = rsp
-            .request(method, path ?: "")
+            .request(model.method, model.path ?: "")
             .then().log().all().and().extract().response()
-        return EasyResponse(response, requirements)
+        return EasyResponse(response, model.requirements)
     }
 
     fun callAndValidate(): EasyResponse {
@@ -79,79 +54,69 @@ open class Endpoint<T : Any>(
         }
     }
 
-    fun setHeaders(headers: Headers): Endpoint<T> {
-        this.headers = headers
+    fun setHeaders(headers: Headers): Endpoint<ReturnedType> {
+        this.model.headers = headers
         return this
     }
 
-    fun overrideHeader(header: Header): Endpoint<T> {
-        this.headers?.removeAll { it.hasSameNameAs(header) }
-        this.headers?.asList()?.add(header)
+    fun overrideHeader(header: Header): Endpoint<ReturnedType> {
+        this.model.headers?.removeAll { it.hasSameNameAs(header) }
+        this.model.headers?.asList()?.add(header)
         return this
     }
 
-    fun setCookies(cookies: Cookies): Endpoint<T> {
-        this.cookies = cookies
+    fun setCookies(cookies: Cookies): Endpoint<ReturnedType> {
+        this.model.cookies = cookies
         return this
     }
 
-    fun setPath(path: String): Endpoint<T> {
-        this.path = path
+    fun setPath(path: String): Endpoint<ReturnedType> {
+        this.model.path = path
         return this
     }
 
-    fun setQueryParams(queryParams: Map<String, Any>?): Endpoint<T> {
-        this.queryParams = queryParams
+    fun setQueryParams(queryParams: Map<String, Any>?): Endpoint<ReturnedType> {
+        this.model.queryParams = queryParams
         return this
     }
 
-    fun setBody(body: Any): Endpoint<T> {
-        this.body = body
+    fun setBody(body: Any): Endpoint<ReturnedType> {
+        this.model.body = body
         return this
     }
 
-    fun overrideRequirements(requirements: Requirements?): Endpoint<T> {
-        this.requirements = requirements
+    fun overrideRequirements(requirements: Requirements?): Endpoint<ReturnedType> {
+        this.model.requirements = requirements
         return this
     }
 
-    fun setParamsForPath(vararg params: String): Endpoint<T> {
-        if (path == null) throw Exceptions.NoParamsException("Path is null")
+    fun setParamsForPath(vararg params: String): Endpoint<ReturnedType> {
+        if (model.path == null) throw Exceptions.NoParamsException("Path is null")
         var paramsCount = 0
         var newPath = ""
-        path!!.split("/").filter { it.isNotEmpty() }.forEach {
+        model.path!!.split("/").filter { it.isNotEmpty() }.forEach {
             if (newPath.isNotEmpty()) newPath += "/"
             if (it[0].toString() == "@") {
                 try {
                     newPath += params[paramsCount]
                 } catch (e: IndexOutOfBoundsException) {
-                    throw Exception("Insufficient amount of params passed to set for path $path, only got ${params.size} params\n + $e")
+                    throw Exception("Insufficient amount of params passed to set for path $model.path, only got ${params.size} params\n + $e")
                 }
                 paramsCount++
             } else {
                 newPath += it
             }
         }
-        path = newPath
+        model.path = newPath
         return this
     }
 
-    fun setParamsForPath(params: Map<String, String>): Endpoint<T> {
-        if (path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
-        var newPath: String = path!!
+    fun setParamsForPath(params: Map<String, String>): Endpoint<ReturnedType> {
+        if (model.path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
+        var newPath: String = model.path!!
         if (newPath[0] == "/".toCharArray()[0]) newPath = newPath.substring(1, newPath.length)
         params.forEach { (t, u) -> newPath = newPath.replace("@", "").replaceIfExists(t, u) }
-        path = newPath
+        model.path = newPath
         return this
     }
-}
-
-data class Requirements(
-    val statusCode: Int? = null,
-    val schemaFile: String? = null,
-    val responseTime: Long? = null
-)
-
-enum class Protocol(val protocolPart: String) {
-    HTTP("http://"), HTTPS("https://")
 }
