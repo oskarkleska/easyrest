@@ -39,6 +39,9 @@ open class E<ReturnedType : Any>(
      * Retries call, validation and casting according to config.
      */
     fun ccc(): ReturnedType {
+        if(classToken == Unit::class.java || classToken == Void::class.java) {
+            throw IllegalCallerException("Response cant be cast onto Unit or Void class")
+        }
             return callAndValidate().andCastAs(classToken)
     }
 
@@ -90,6 +93,7 @@ open class E<ReturnedType : Any>(
 
     fun setBody(body: Any): E<ReturnedType> {
         this.model.body = body
+        rsp.body(this.model.body)
         return this
     }
 
