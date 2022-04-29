@@ -8,7 +8,14 @@ import io.restassured.http.Headers
 import io.restassured.http.Method.*
 
 const val URI = "crudcrud.com/"
-const val PATH = "api/b64d0555d7984077b6a49b76c860d466"
+const val PATH = "api/@dashboardId"
+
+class CrudGetDashboard : EndpointModel(
+    method = GET,
+    protocol = Protocol.HTTPS,
+    baseUri = URI,
+    requirements = Requirements(statusCode = 200, responseTime = 2000L)
+)
 
 class CrudPost : EndpointModel(
     method = POST,
@@ -23,7 +30,7 @@ class CrudGetAll : EndpointModel(
     GET,
     Protocol.HTTPS,
     URI,
-    "$PATH/@resource",
+    path = "$PATH/@resource",
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 )
 
@@ -31,7 +38,7 @@ class CrudGet : EndpointModel(
     GET,
     Protocol.HTTPS,
     URI,
-    "$PATH/@resource/@id",
+    path = "$PATH/resource/@id",
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 )
 
@@ -39,7 +46,8 @@ class CrudUpdate : EndpointModel(
     PUT,
     Protocol.HTTPS,
     URI,
-    "$PATH/@resource/@id",
+    path = "$PATH/resource/@id",
+    headers = Headers(listOf(Header("Content-Type", "application/json"))),
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 )
 
@@ -47,6 +55,6 @@ class CrudDelete : EndpointModel(
     DELETE,
     Protocol.HTTPS,
     URI,
-    "$PATH/@resource/@id",
+    "$PATH/resource/@id",
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 )

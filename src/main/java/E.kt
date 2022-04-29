@@ -6,7 +6,6 @@ import io.restassured.http.Header
 import io.restassured.http.Headers
 import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
-import java.util.*
 
 open class E<ReturnedType : Any>(
     val model: EndpointModel,
@@ -42,7 +41,7 @@ open class E<ReturnedType : Any>(
         if(classToken == Unit::class.java || classToken == Void::class.java) {
             throw IllegalCallerException("Response cant be cast onto Unit or Void class")
         }
-            return callAndValidate().andCastAs(classToken)
+            return cc().andCastAs(classToken)
     }
 
     fun getResponse(): Response {
@@ -59,7 +58,7 @@ open class E<ReturnedType : Any>(
         return EasyResponse(response, model.requirements)
     }
 
-    fun callAndValidate(): EasyResponse {
+    fun cc(): EasyResponse {
         return retry {
             call().validate()
         }
