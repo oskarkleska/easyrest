@@ -4,7 +4,7 @@ import E
 import Requirements
 import Utils.softAssertions
 import org.junit.jupiter.api.*
-import src.*
+import src.model.*
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
