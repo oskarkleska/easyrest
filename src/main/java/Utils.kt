@@ -8,7 +8,7 @@ object Utils {
             try {
                 return block()
             } catch (e: Throwable) {
-                println("EKSEPSZĄ: ${e.message}")
+                // TODO: log.warn
                 Thread.sleep(delay)
             }
         }
