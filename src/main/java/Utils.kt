@@ -19,4 +19,10 @@ object Utils {
         if(this.indexOf(s1) == -1) throw Exceptions.StringNotFoundException("$s1 not found in $this")
         return this.replace(s1,s2)
     }
+
+    fun softAssert(message: String, block: () -> Boolean) {
+        if(!block()) softAssertions.add(message)
+    }
+
+    val softAssertions:MutableList<String> = mutableListOf()
 }

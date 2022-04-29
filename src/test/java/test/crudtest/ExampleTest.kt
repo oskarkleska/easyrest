@@ -2,6 +2,7 @@ package test.crudtest
 
 import E
 import Requirements
+import Utils.softAssertions
 import org.junit.jupiter.api.*
 import src.*
 import java.util.*
@@ -19,6 +20,12 @@ class ExampleTest {
             E<Unit>(CrudGetDashboard()).cc().response.headers.find { it.name == "Set-Cookie" }?.value?.split(";")
                 ?.find { it.startsWith("UniqueEndpointId") }?.split("=")
                 ?.get(1) ?: throw Exceptions.ArgumentNotFoundException("No dashboard Id found in response")
+    }
+
+    @AfterAll
+    fun checkSoftAssertions() {
+        if(softAssertions.size > 0)
+        println("Soft assertions: $softAssertions")
     }
 
     @Test

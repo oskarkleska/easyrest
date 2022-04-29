@@ -23,7 +23,7 @@ class CrudPost : EndpointModel(
     baseUri = URI,
     path = "$PATH/resource",
     headers = Headers(listOf(Header("Content-Type", "application/json"))),
-    requirements = Requirements(statusCode = 201, responseTime = 1000L)
+    requirements = Requirements(statusCode = 201, responseTime = 10L)
 )
 
 class CrudGetAll : EndpointModel(
@@ -31,7 +31,7 @@ class CrudGetAll : EndpointModel(
     Protocol.HTTPS,
     URI,
     path = "$PATH/@resource",
-    requirements = Requirements(statusCode = 200, responseTime = 1000L)
+    requirements = Requirements(statusCode = 200, responseTime = 10L)
 )
 
 class CrudGet : EndpointModel(
@@ -39,7 +39,7 @@ class CrudGet : EndpointModel(
     Protocol.HTTPS,
     URI,
     path = "$PATH/resource/@id",
-    requirements = Requirements(statusCode = 200, responseTime = 1000L)
+    requirements = Requirements(statusCode = 200, responseTime = 10L)
 )
 
 class CrudUpdate : EndpointModel(
