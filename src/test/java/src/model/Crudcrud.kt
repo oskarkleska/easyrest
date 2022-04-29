@@ -1,4 +1,4 @@
-package src
+package src.model
 
 import EndpointModel
 import Protocol
