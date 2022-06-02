@@ -11,6 +11,16 @@ open class E<ReturnedType : Any>(
     val model: EndpointModel,
     var classToken: Class<ReturnedType>
 ) {
+    private lateinit var response: Response
+    private var rsp: RequestSpecification = given().filter(LoggingFilter())
+    init {
+        if (model.headers != null) rsp.headers(model.headers)
+        if (model.body != null) rsp.body(model.body)
+        if (model.cookies != null) rsp.cookies(model.cookies)
+        if (model.queryParams != null) rsp.queryParams(model.queryParams)
+        rsp.baseUri(model.protocol.protocolPart + model.baseUri)
+    }
+
     companion object {
         inline operator fun <reified ReturnedType : Any> invoke(
             model: EndpointModel
@@ -20,26 +30,13 @@ open class E<ReturnedType : Any>(
         )
     }
 
-    private lateinit var response: Response
-
-    private var rsp: RequestSpecification = given()
-
-    init {
-        if (model.headers != null) rsp.headers(model.headers)
-        if (model.body != null) rsp.body(model.body)
-        if (model.cookies != null) rsp.cookies(model.cookies)
-        if (model.queryParams != null) rsp.queryParams(model.queryParams)
-        rsp.log().all() // TODO: add config for logging
-        rsp.baseUri(model.protocol.protocolPart + model.baseUri)
-    }
-
     /**
      * Call, check & cast.
      * Retries call, validation and casting according to config.
      */
     fun ccc(): ReturnedType {
         if(classToken == Unit::class.java || classToken == Void::class.java) {
-            throw IllegalCallerException("Response cant be cast onto Unit or Void class")
+            throw IllegalCallerException("Response cant be cast onto Unit or Void class. Try calling cc() method.")
         }
             return cc().andCastAs(classToken)
     }
@@ -54,7 +51,7 @@ open class E<ReturnedType : Any>(
     fun call(): EasyResponse {
         response = rsp
             .request(model.method, model.path ?: "")
-            .then().log().all().and().extract().response()
+            .then().extract().response()
         return EasyResponse(response, model.requirements)
     }
 

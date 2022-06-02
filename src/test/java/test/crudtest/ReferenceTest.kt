@@ -4,6 +4,7 @@ import Utils.retry
 import Utils.softAssert
 import Utils.softAssertions
 import io.restassured.RestAssured.given
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
 import java.util.*
 
@@ -13,6 +14,7 @@ class ReferenceTest {
     private lateinit var id: String
     private lateinit var dashboardId: String
     private val newResource = RandomResource("Something", Random().nextInt(100), true)
+    private val log = LogManager.getLogger(this::class.java)
 
     @BeforeAll
     fun getBrandNewDashboardId() {
@@ -32,7 +34,7 @@ class ReferenceTest {
     @AfterAll
     fun checkSoftAssertions() {
         if(softAssertions.size > 0)
-        println("Soft assertions: $softAssertions")
+        log.info("Soft assertions: $softAssertions")
     }
 
     @Test

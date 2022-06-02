@@ -1,7 +1,7 @@
 object Utils {
      fun <T> retry(
-        times: Int = 5,
-        delay: Long = 500,
+        times: Int = TestManager.getConfig().defaultRetryCount,
+        delay: Long = TestManager.getConfig().defaultPollingDelay,
         block: () -> T): T
     {
         for(i  in 0..times){

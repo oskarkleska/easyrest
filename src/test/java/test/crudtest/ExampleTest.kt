@@ -3,6 +3,7 @@ package test.crudtest
 import E
 import Requirements
 import Utils.softAssertions
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
 import src.model.*
 import java.util.*
@@ -13,19 +14,26 @@ class ExampleTest {
     private lateinit var id: String
     private lateinit var dashboardId: String
     private val newResource = RandomResource("Something", Random().nextInt(100), true)
+    private val log = LogManager.getLogger(this::class.java)
 
     @BeforeAll
     fun getBrandNewDashboardId() {
-        dashboardId =
-            E<Unit>(CrudGetDashboard()).cc().response.headers.find { it.name == "Set-Cookie" }?.value?.split(";")
-                ?.find { it.startsWith("UniqueEndpointId") }?.split("=")
-                ?.get(1) ?: throw Exceptions.ArgumentNotFoundException("No dashboard Id found in response")
+        dashboardId = E<Unit>(CrudGetDashboard())
+            .cc()
+            .response
+            .headers
+            .find { it.name == "Set-Cookie" }
+            ?.value
+            ?.split(";")
+            ?.find { it.startsWith("UniqueEndpointId") }
+            ?.split("=")
+            ?.get(1) ?: throw Exceptions.ArgumentNotFoundException("No dashboard Id found in response")
     }
 
     @AfterAll
     fun checkSoftAssertions() {
-        if(softAssertions.size > 0)
-        println("Soft assertions: $softAssertions")
+        if (softAssertions.size > 0)
+            log.info("Soft assertions: $softAssertions")
     }
 
     @Test
