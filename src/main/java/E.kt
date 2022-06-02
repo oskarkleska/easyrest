@@ -13,6 +13,7 @@ open class E<ReturnedType : Any>(
 ) {
     private lateinit var response: Response
     private var rsp: RequestSpecification = given().filter(LoggingFilter())
+
     init {
         if (model.headers != null) rsp.headers(model.headers)
         if (model.body != null) rsp.body(model.body)
@@ -35,15 +36,15 @@ open class E<ReturnedType : Any>(
      * Retries call, validation and casting according to config.
      */
     fun ccc(): ReturnedType {
-        if(classToken == Unit::class.java || classToken == Void::class.java) {
+        if (classToken == Unit::class.java || classToken == Void::class.java) {
             throw IllegalCallerException("Response cant be cast onto Unit or Void class. Try calling cc() method.")
         }
-            return cc().andCastAs(classToken)
+        return cc().andCastAs(classToken)
     }
 
     fun getResponse(): Response {
         if (!this::response.isInitialized) {
-             throw Exceptions.EndpointNotCalledYetException()
+            throw Exceptions.EndpointNotCalledYetException()
         }
         return response
     }

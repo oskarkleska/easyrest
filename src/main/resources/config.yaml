@@ -1,11 +1,12 @@
 defaultRetryCount: 2
 defaultPollingDelay: 500
 loggingConfig:
-  logRequests: true,
-  logResponses: true,
-  logHeaders: true,
-  logCookies: false,
-  logTiming: true,
-  logPayload: true,
-  logUri: true,
+  logRequests: true
+  logResponses: true
+  logHeaders: true
+  logCookies: false
+  logTiming: true
+  logPayload: true
+  logUri: true
   logQueryParams: false
+  logHtmlResponse: false

@@ -12,5 +12,6 @@ data class LoggingConfig(
     val logTiming: Boolean,
     val logPayload: Boolean,
     val logUri: Boolean,
-    val logQueryParams: Boolean
+    val logQueryParams: Boolean,
+    val logHtmlResponse: Boolean
 )

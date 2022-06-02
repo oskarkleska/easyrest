@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info">
     <Properties>
-        <Property name="REQ_LOG_LOC">logs/failed/requests</Property>
-        <Property name="LOG_LOC">logs/passed</Property>
+        <Property name="LOG_LOC">logs</Property>
         <Property name="MAX">5</Property>
         <Property name="LOG_PATTERN">%d{yyyy.MM.dd HH:mm:ss.SSS} [%p] %c %x %m%n
         </Property>
@@ -35,32 +34,8 @@
                 </Route>
             </Routes>
         </Routing>
-        <Routing name="restassured">
-            <Routes pattern="$${ctx:ROUTING_KEY}">
-                <Route>
-                    <RollingFile name="RAW"
-                                 fileName="${REQ_LOG_LOC}/${ctx:ROUTING_KEY}.txt"
-                                 filePattern="${REQ_LOG_LOC}/${ctx:ROUTING_KEY}.%i.txt"
-                                 bufferedIO="true"
-                                 immediateFlush="true"
-                                 append="false">
-                        <PatternLayout>
-                            <Pattern>${LOG_PATTERN}</Pattern>
-                            <Charset>UTF-8</Charset>
-                        </PatternLayout>
-                        <Policies>
-                            <OnStartupTriggeringPolicy/>
-                        </Policies>
-                        <DefaultRolloverStrategy max="${MAX}"/>
-                    </RollingFile>
-                </Route>
-            </Routes>
-        </Routing>
     </Appenders>
     <Loggers>
-        <Logger name="RestCalls" level="debug" additivity="false">
-            <AppenderRef ref="restassured" level="debug"/>
-        </Logger>
         <Root level="info">
             <AppenderRef ref="info" level="info"/>
             <AppenderRef ref="console" level="info"/>

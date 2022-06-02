@@ -21,7 +21,7 @@ class LoggingFilter : Filter {
         if (config.logRequests) {
             requestLogs.append("\n*****\t\tREQUEST\t\t*****\n")
             if (config.logUri) {
-                requestLogs.append("URI: ${ov(request.method)}\n")
+                requestLogs.append("URI: ${ov(request.method)} ${ov(request.uri)}\n")
             }
             if (config.logHeaders) {
                 requestLogs.append("Headers: ${ov(request.headers)}\n")
@@ -30,24 +30,27 @@ class LoggingFilter : Filter {
                 requestLogs.append("Cookies: ${ov(request.cookies)}\n")
             }
             if (config.logPayload) {
-                requestLogs.append("Body: ${ov(request.headers)}\n")
-                requestLogs.append("Form Params: ${ov(request.headers)}\n")
-                requestLogs.append("MultiPart: ${ov(request.headers)}\n")
+                requestLogs.append("Body: ${ov(request.getBody())}\n")
+                requestLogs.append("Form Params: ${ov(request.formParams)}\n")
+                requestLogs.append("MultiPart: ${ov(request.multiPartParams)}\n")
             }
         }
         val responseLogs = StringBuilder()
         if (config.logResponses) {
             responseLogs.append("\n*****\t\tRESPONSE\t\t*****\n")
-            responseLogs.append("Status Line: ${response.statusLine()}")
+            responseLogs.append("Status Line: ${response.statusLine()}\n")
             if(config.logTiming) {
                 responseLogs.append("Time taken [ms]: ${response.time}\n")
             }
-            if(config.logPayload) {
-                responseLogs.append("Body: ${response.asString()}")
+            if(config.logPayload && !response.contentType.contains("pdf")) {
+                if(!response.contentType.contains("html") ||
+                    (response.contentType.contains("html") && config.logHtmlResponse)) {
+                    responseLogs.append("Body: ${response.asString()}")
+                }
             }
         }
 
-        log.info("\n\n$requestLogs + $responseLogs\n")
+        log.info("$requestLogs + $responseLogs\n\n")
         return response
     }
 

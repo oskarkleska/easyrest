@@ -6,9 +6,9 @@
     <version>0.0.1</version>
 
     <properties>
-        <kotlin.version>1.6.20-RC</kotlin.version>
+        <kotlin.version>1.6.21</kotlin.version>
         <junit.version>5.8.2</junit.version>
-        <restassured.version>4.5.1</restassured.version>
+        <restassured.version>5.0.1</restassured.version>
     </properties>
 
 
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>net.pwall.json</groupId>
             <artifactId>json-kotlin-schema</artifactId>
-            <version>0.18</version>
+            <version>0.34</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

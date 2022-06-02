@@ -4,6 +4,7 @@ import E
 import Requirements
 import Utils.softAssertions
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.ThreadContext
 import org.junit.jupiter.api.*
 import src.model.*
 import java.util.*
@@ -15,6 +16,10 @@ class ExampleTest {
     private lateinit var dashboardId: String
     private val newResource = RandomResource("Something", Random().nextInt(100), true)
     private val log = LogManager.getLogger(this::class.java)
+
+    init {
+        ThreadContext.put("ROUTING_KEY", "example_test")
+    }
 
     @BeforeAll
     fun getBrandNewDashboardId() {
