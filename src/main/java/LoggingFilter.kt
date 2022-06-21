@@ -21,7 +21,7 @@ class LoggingFilter : Filter {
         if (config.logRequests) {
             requestLogs.append("\n*****\t\tREQUEST\t\t*****\n")
             if (config.logUri) {
-                requestLogs.append("URI: ${ov(request.method)} ${ov(request.uri)}\n")
+                requestLogs.append("${ov(request.method)} ${ov(request.uri)}\n")
             }
             if (config.logHeaders) {
                 requestLogs.append("Headers: ${ov(request.headers)}\n")
