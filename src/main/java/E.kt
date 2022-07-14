@@ -53,7 +53,7 @@ open class E<ReturnedType : Any>(
         response = rsp
             .request(model.method, model.path ?: "")
             .then().extract().response()
-        return EasyResponse(response, model.requirements)
+        return EasyResponse(response, model.requirements, model)
     }
 
     fun cc(): EasyResponse {

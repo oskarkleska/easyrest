@@ -50,7 +50,7 @@ class LoggingFilter : Filter {
             }
         }
 
-        log.info("$requestLogs + $responseLogs\n\n")
+        log.info("$requestLogs\n+++$responseLogs\n\n")
         return response
     }
 

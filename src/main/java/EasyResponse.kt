@@ -3,12 +3,12 @@ import io.restassured.response.Response
 import net.pwall.json.schema.JSONSchema
 import org.junit.jupiter.api.Assertions.assertAll
 
-data class EasyResponse(val response: Response, val requirements: Requirements?) {
+data class EasyResponse(val response: Response, val requirements: Requirements?, val model: EndpointModel) {
 
     fun validate(): EasyResponse {
         if (requirements == null) return this
         assertAll(
-            "Checking if response meets specification",
+            "Checking if response to ${getCalledEndpoint()} meets specification",
             {
                 assert(
                     if (requirements.statusCode == null) {
@@ -16,7 +16,7 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
                     } else {
                         response.statusCode == requirements.statusCode
                     }
-                ) { "Wrong status code, expected ${requirements.statusCode} but got ${response.statusCode}" }
+                ) { "Wrong status code calling ${getCalledEndpoint()}, expected ${requirements.statusCode} but got ${response.statusCode}" }
             },
             {
                 assert(
@@ -25,13 +25,13 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
                     } else {
                         true
                     }
-                ) { "Schema does not meet requirements, check response" }
+                ) { "Schema of ${getCalledEndpoint()} does not meet requirements, check response" }
             },
             {
-                softAssert("Too long response time, expected ${requirements.responseTime} but got ${response.time}") {
+                softAssert("Too long response time calling ${getCalledEndpoint()}, expected ${requirements.responseTime}ms but got ${response.time}ms") {
                     if (requirements.responseTime == null)
-                       true
-                     else
+                        true
+                    else
                         response.time <= requirements.responseTime
                 }
             }
@@ -39,7 +39,11 @@ data class EasyResponse(val response: Response, val requirements: Requirements?)
         return this
     }
 
-    fun <T: Any> andCastAs(clazz: Class<T>) : T {
+    fun <T : Any> andCastAs(clazz: Class<T>): T {
         return this.response.`as`(clazz)
+    }
+
+    private fun getCalledEndpoint() : String {
+        return "${model.method} ${model.baseUri}${model.path}"
     }
 }

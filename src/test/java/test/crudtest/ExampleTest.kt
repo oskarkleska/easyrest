@@ -23,7 +23,7 @@ class ExampleTest {
 
     @BeforeAll
     fun getBrandNewDashboardId() {
-        dashboardId = E<Unit>(CrudGetDashboard())
+        dashboardId = CrudGetDashboard().positive
             .cc()
             .response
             .headers
@@ -38,29 +38,26 @@ class ExampleTest {
     @AfterAll
     fun checkSoftAssertions() {
         if (softAssertions.size > 0)
-            log.info("Soft assertions: $softAssertions")
+            log.warn("Soft assertions: $softAssertions")
     }
 
     @Test
     @Order(1)
     fun createResource() {
-        val resp = E<RandomResourceResponse>(CrudPost())
-            .setParamsForPath(mapOf("dashboardId" to dashboardId))
-            .setBody(newResource)
-            .ccc()
+        val resp = CrudPost().positive(dashboardId, newResource).ccc()
         this.id = resp._id
     }
 
     @Test
     @Order(2)
     fun getResource() {
-        val rsp =
-            E<RandomResourceResponse>(CrudGet())
-                .setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
-                .ccc()
-        assert(rsp.isTrue == newResource.isTrue)
-        assert(rsp.name == newResource.name)
-        assert(rsp.count == newResource.count)
+        val rsp = CrudGet().positive(id, dashboardId).ccc()
+        assertAll(
+            "Checking if resource is updated correctly",
+            { assert(rsp.isTrue == newResource.isTrue) },
+            { assert(rsp.name == newResource.name) },
+            { assert(rsp.count == newResource.count) }
+        )
     }
 
     @Test
@@ -68,17 +65,13 @@ class ExampleTest {
     fun putResource() {
         val updatedResource = newResource
         updatedResource.isTrue = false
-        E<Unit>(CrudUpdate()).setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId)).setBody(updatedResource)
-            .cc()
+        CrudUpdate().positive(id, dashboardId, updatedResource).cc()
     }
 
     @Test
     @Order(4)
     fun getUpdatedResource() {
-        val rsp =
-            E<RandomResourceResponse>(CrudGet())
-                .setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
-                .ccc()
+        val rsp = CrudGet().positive(id, dashboardId).ccc()
         assert(!rsp.isTrue)
         assert(rsp.name == newResource.name)
         assert(rsp.count == newResource.count)
@@ -87,16 +80,12 @@ class ExampleTest {
     @Test
     @Order(5)
     fun deleteResource() {
-        E<Unit>(CrudDelete()).setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId)).cc()
+        CrudDelete().positive(id, dashboardId).cc()
     }
 
     @Test
     @Order(6)
     fun get404NoResource() {
-        E<RandomResourceResponse>(CrudGet()).setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
-            .overrideRequirements(
-                Requirements(statusCode = 404, responseTime = 1000L)
-            )
-            .cc()
+        CrudGet().notFound(id, dashboardId).cc()
     }
 }

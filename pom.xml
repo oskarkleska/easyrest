@@ -6,19 +6,26 @@
     <version>0.0.1</version>
 
     <properties>
-        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin.version>1.7.10</kotlin.version>
         <junit.version>5.8.2</junit.version>
-        <restassured.version>5.0.1</restassured.version>
+        <restassured.version>5.1.1</restassured.version>
     </properties>
 
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib -->
+<!--        <dependency>-->
+<!--            <groupId>org.jetbrains.kotlin</groupId>-->
+<!--            <artifactId>kotlin-stdlib-jdk8</artifactId>-->
+<!--            <version>${kotlin.version}</version>-->
+<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -35,7 +42,7 @@
         <dependency>
             <groupId>net.pwall.json</groupId>
             <artifactId>json-kotlin-schema</artifactId>
-            <version>0.34</version>
+            <version>0.35</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -102,7 +109,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>15</jvmTarget>
                 </configuration>
             </plugin>
             <plugin>
@@ -118,8 +125,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>9</source>
-                    <target>9</target>
+                    <source>15</source>
+                    <target>15</target>
                 </configuration>
             </plugin>
         </plugins>
