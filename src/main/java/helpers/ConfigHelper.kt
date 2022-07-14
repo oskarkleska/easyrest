@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.io.FileNotFoundException
 
 object ConfigHelper {
     private const val DEFAULT_CONFIG_PATH: String = "config.yaml"
@@ -19,14 +20,17 @@ object ConfigHelper {
         return try {
             mapper.readValue(File("src/main/resources/$path"), EasyRestConfig::class.java)
         } catch (exception: MissingKotlinParameterException) {
-            log.info("Could not read YAML file! \n${exception.message}")
+            log.warn("Could not read YAML file! \n${exception.message}")
+            getBaseConfig()
+        } catch (exception: FileNotFoundException) {
+            log.warn("Could not find $path file, getting base config")
             getBaseConfig()
         }
     }
 
     fun findConfigPath(): String {
         // todo logic to find config path
-        return "config.yaml"
+        return "confxxig.yaml"
     }
 
     private fun getBaseConfig(): EasyRestConfig {
