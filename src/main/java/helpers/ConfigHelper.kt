@@ -10,13 +10,15 @@ import java.io.File
 import java.io.FileNotFoundException
 
 object ConfigHelper {
-    private const val DEFAULT_CONFIG_PATH: String = "config.yaml"
+    private const val DEFAULT_CONFIG_PATH: String = "/config.yaml"
     private val log = LogManager.getLogger(this::class.java)
+    private val mapper = ObjectMapper(YAMLFactory())
+
+    init {
+        mapper.registerModule(KotlinModule.Builder().build())
+    }
 
     fun getConfig(path: String): EasyRestConfig {
-        val mapper = ObjectMapper(YAMLFactory())
-        mapper.registerModule(KotlinModule.Builder().build())
-
         return try {
             mapper.readValue(File("src/main/resources/$path"), EasyRestConfig::class.java)
         } catch (exception: MissingKotlinParameterException) {
@@ -34,6 +36,10 @@ object ConfigHelper {
     }
 
     private fun getBaseConfig(): EasyRestConfig {
-        return getConfig(DEFAULT_CONFIG_PATH)
+        return mapper.readValue(
+            File(this::class.java.classLoader.getResource(DEFAULT_CONFIG_PATH).toURI()),
+//            File(this::class.java.getResource(DEFAULT_CONFIG_PATH).toExternalForm()),
+            EasyRestConfig::class.java
+        )
     }
 }
