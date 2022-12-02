@@ -3,9 +3,12 @@ package test.crudtest
 import Utils.retry
 import Utils.softAssert
 import Utils.softAssertions
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.restassured.RestAssured.given
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
+import stubs.IntegrationTests
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -16,8 +19,13 @@ class ReferenceTest {
     private val newResource = RandomResource("Something", Random().nextInt(100), true)
     private val log = LogManager.getLogger(this::class.java)
 
+    init {
+        WireMockServer(WireMockConfiguration.options().port(8080).enableBrowserProxying(false)).start()
+    }
+
     @BeforeAll
     fun getBrandNewDashboardId() {
+        IntegrationTests.stubGetDashboardId()
         retry(3, 1000) {
             dashboardId = given()
                 .baseUri("https://crudcrud.com/")
@@ -40,9 +48,10 @@ class ReferenceTest {
     @Test
     @Order(1)
     fun createResource() {
+        IntegrationTests.stubPost(dashboardId, newResource)
         val resp = retry(3, 1000)  {
             val response = given()
-                .baseUri("https://crudcrud.com/")
+                .baseUri("http://localhost:8080/")
                 .contentType("application/json")
                 .body(newResource)
                 .post("api/$dashboardId/resource")
@@ -61,9 +70,10 @@ class ReferenceTest {
     @Test
     @Order(2)
     fun getResource() {
+        IntegrationTests.stubGetResource(dashboardId, id)
         val rsp = retry(3, 1000)  {
             val response = given()
-                .baseUri("https://crudcrud.com/")
+                .baseUri("http://localhost:8080/")
                 .get("api/$dashboardId/resource/$id")
                 .then()
                 .statusCode(200)
@@ -85,9 +95,10 @@ class ReferenceTest {
     fun putResource() {
         val updatedResource = newResource
         updatedResource.isTrue = false
+        IntegrationTests.stubPutResource(dashboardId, id, updatedResource)
         retry(3, 1000)  {
             val response = given()
-                .baseUri("https://crudcrud.com/")
+                .baseUri("http://localhost:8080/")
                 .contentType("application/json")
                 .body(updatedResource)
                 .put("api/$dashboardId/resource/$id")
@@ -104,9 +115,10 @@ class ReferenceTest {
     @Test
     @Order(4)
     fun getUpdatedResource() {
+        IntegrationTests.stubGetResource(dashboardId, id)
         val rsp = retry(3, 1000)  {
             val response = given()
-                .baseUri("https://crudcrud.com/")
+                .baseUri("http://localhost:8080/")
                 .get("api/$dashboardId/resource/$id")
                 .then()
                 .statusCode(200)
@@ -126,9 +138,10 @@ class ReferenceTest {
     @Test
     @Order(5)
     fun deleteResource() {
+        IntegrationTests.stubDeleteResource(dashboardId, id)
         retry(3, 1000)  {
             val response = given()
-                .baseUri("https://crudcrud.com/")
+                .baseUri("http://localhost:8080/")
                 .delete("api/$dashboardId/resource/$id")
                 .then()
                 .statusCode(200)
@@ -143,9 +156,10 @@ class ReferenceTest {
     @Test
     @Order(6)
     fun get404NoResource() {
+        IntegrationTests.stubGetResource(dashboardId, id)
         retry(3, 1000)  {
             val response = given()
-                .baseUri("https://crudcrud.com/")
+                .baseUri("http://localhost:8080/")
                 .get("api/$dashboardId/resource/$id")
                 .then()
                 .statusCode(404)
