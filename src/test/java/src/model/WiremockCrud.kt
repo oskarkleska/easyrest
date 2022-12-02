@@ -9,21 +9,21 @@ import io.restassured.http.Headers
 import io.restassured.http.Method.*
 import test.crudtest.RandomResourceResponse
 
-private const val URI = "crudcrud.com/"
+private const val URI = "localhost:8080"
 private const val PATH = "api/@dashboardId"
 
-class CrudGetDashboard : EndpointModel(
+class WMCrudGetDashboard : EndpointModel(
     method = GET,
-    protocol = Protocol.HTTPS,
+    protocol = Protocol.HTTP,
     baseUri = URI,
     requirements = Requirements(statusCode = 200, responseTime = 2000L)
 ) {
-    val positive = Returns<Unit>(this)
+    fun positive() = Returns<Unit>(this).cc()
 }
 
-class CrudPost : EndpointModel(
+class WMCrudPost : EndpointModel(
     method = POST,
-    protocol = Protocol.HTTPS,
+    protocol = Protocol.HTTP,
     baseUri = URI,
     path = "$PATH/resource",
     headers = mutableMapOf("Content-Type" to "application/json"),
@@ -37,17 +37,17 @@ class CrudPost : EndpointModel(
     }
 }
 
-class CrudGetAll : EndpointModel(
+class WMCrudGetAll : EndpointModel(
     GET,
-    Protocol.HTTPS,
+    Protocol.HTTP,
     URI,
     path = "$PATH/@resource",
     requirements = Requirements(statusCode = 200, responseTime = 10L)
 )
 
-class CrudGet : EndpointModel(
+class WMCrudGet : EndpointModel(
     GET,
-    Protocol.HTTPS,
+    Protocol.HTTP,
     URI,
     path = "$PATH/resource/@id",
     requirements = Requirements(statusCode = 200, responseTime = 10L)
@@ -66,9 +66,9 @@ class CrudGet : EndpointModel(
     }
 }
 
-class CrudUpdate : EndpointModel(
+class WMCrudUpdate : EndpointModel(
     PUT,
-    Protocol.HTTPS,
+    Protocol.HTTP,
     URI,
     path = "$PATH/resource/@id",
     headers = mutableMapOf("Content-Type" to "application/json"),
@@ -81,9 +81,9 @@ class CrudUpdate : EndpointModel(
     }
 }
 
-class CrudDelete : EndpointModel(
+class WMCrudDelete : EndpointModel(
     DELETE,
-    Protocol.HTTPS,
+    Protocol.HTTP,
     URI,
     "$PATH/resource/@id",
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
