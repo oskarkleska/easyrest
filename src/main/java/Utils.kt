@@ -1,18 +1,19 @@
 object Utils {
     fun <T> retry(
-        times: Int = TestManager.getConfig().defaultRetryCount,
-        delay: Long = TestManager.getConfig().defaultPollingDelay,
-        block: () -> T
+        times: Int,
+        delay: Long,
+        block: () -> T,
     ): T {
+        var throwable: Throwable? = null
         for (i in 0..times) {
             try {
                 return block()
             } catch (e: Throwable) {
-                // TODO: log.warn
+                throwable = e
                 Thread.sleep(delay)
             }
         }
-        return block()
+        throw throwable!!
     }
 
     fun String.replaceIfExists(s1: String, s2: String): String {
@@ -25,4 +26,26 @@ object Utils {
     }
 
     val softAssertions: MutableList<String> = mutableListOf()
+
+    fun Collection<String>.concat(char: Char): String {
+        var str = ""
+        this.forEach {
+            str += it + char
+        }
+        return str.dropLast(1)
+    }
+
+    fun <T> onException(exceptionMessage: String, block: () -> T): T {
+        try {
+            return block()
+        } catch (e: Throwable) {
+            throw Exceptions.EasyRestException("$exceptionMessage\n${e.message}")
+        }
+    }
+
+    fun MutableMap<String,Any>.putAllNotDuplicate(map: Map<String,Any>) {
+        map.forEach{
+            this[it.key] = it.value
+        }
+    }
 }

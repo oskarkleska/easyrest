@@ -1,45 +1,111 @@
+import Utils.putAllNotDuplicate
 import Utils.replaceIfExists
 import Utils.retry
+import helpers.HttpConfig
 import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
-import io.restassured.http.Header
-import io.restassured.http.Headers
 import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 open class Returns<ReturnedType : Any>(
     val model: EndpointModel,
-    var classToken: Class<ReturnedType>
+    val loggingConfig: LoggingConfig = TestManager.getConfig().loggingConfig,
+    val httpConfig: HttpConfig = HttpConfig(),
+    var classToken: Class<ReturnedType>,
 ) {
     private lateinit var response: Response
-    private var rsp: RequestSpecification = given().filter(LoggingFilter())
-
-    init {
-        if (model.headers != null) rsp.headers(model.headers)
-        if (model.body != null) rsp.body(model.body)
-        if (model.cookies != null) rsp.cookies(model.cookies)
-        if (model.queryParams != null) rsp.queryParams(model.queryParams)
-        rsp.baseUri(model.protocol.protocolPart + model.baseUri)
-    }
+    private lateinit var rsp: RequestSpecification
+    private val log: Logger = LogManager.getLogger(this::class.java)
 
     companion object {
+
         inline operator fun <reified ReturnedType : Any> invoke(
-            model: EndpointModel
+            model: EndpointModel,
         ): Returns<ReturnedType> = Returns(
             model = model,
             classToken = ReturnedType::class.java
         )
+
+        inline operator fun <reified ReturnedType : Any> invoke(
+            model: EndpointModel,
+            httpConfig: HttpConfig,
+        ): Returns<ReturnedType> = Returns(
+            model = model,
+            httpConfig = httpConfig,
+            classToken = ReturnedType::class.java
+        )
+
+        inline operator fun <reified ReturnedType : Any> invoke(
+            model: EndpointModel,
+            loggingConfig: LoggingConfig,
+        ): Returns<ReturnedType> = Returns(
+            model = model,
+            loggingConfig = loggingConfig,
+            classToken = ReturnedType::class.java
+        )
+
+        inline operator fun <reified ReturnedType : Any> invoke(
+            model: EndpointModel,
+            httpConfig: HttpConfig,
+            loggingConfig: LoggingConfig,
+        ): Returns<ReturnedType> = Returns(
+            model = model,
+            httpConfig = httpConfig,
+            loggingConfig = loggingConfig,
+            classToken = ReturnedType::class.java
+        )
     }
+
+    inner class Validation(val returnedObject: ReturnedType, val response: Response)
 
     /**
      * Call, check & cast.
      * Retries call, validation and casting according to config.
      */
-    fun ccc(): ReturnedType {
+    fun ccc(
+        retryLimit: Int = TestManager.getConfig().defaultRetryCount,
+        interval: Long = TestManager.getConfig().defaultPollingDelay,
+    ): ReturnedType {
         if (classToken == Unit::class.java || classToken == Void::class.java) {
             throw IllegalCallerException("Response cant be cast onto Unit or Void class. Try calling cc() method.")
         }
-        return cc().andCastAs(classToken)
+        return cc(retryLimit, interval).andCastAs(classToken)
+    }
+
+    fun waitFor(
+        timeout: Long = 60000,
+        interval: Long = 2000,
+        validate: (x: Validation) -> Boolean,
+    ): ReturnedType {
+        if (timeout <= 0 || interval <= 0 || interval > timeout) throw IllegalArgumentException("Timeout and interval must be positive values with interval smaller or equal to timeout")
+        var easyResponse: EasyResponse
+        val times = timeout / interval
+        for (i in 0..times) {
+            try {
+                easyResponse = call().validate()
+                val responseObject = easyResponse.andCastAs(classToken)
+                assert(
+                    validate(
+                        Validation(
+                            responseObject,
+                            easyResponse.response
+                        )
+                    )
+                ) { "Polling condition not met on endpoint ${easyResponse.getEndpointPattern()} after ${i+1 * interval / 1000} seconds" }
+                return responseObject
+            } catch (e: AssertionError) {
+                if (i + 1 < times) {
+                    log.info("Expectations not met: ${e.localizedMessage}")
+                    Thread.sleep(interval)
+                } else throw e
+            } catch (t: Throwable) {
+                log.error("Unexpected exception:\n ${t.localizedMessage}\n${t.stackTraceToString()}")
+                throw t
+            }
+        }
+        throw Error("This should not happen! Polling issue")
     }
 
     fun getResponse(): Response {
@@ -49,27 +115,60 @@ open class Returns<ReturnedType : Any>(
         return response
     }
 
-    fun call(): EasyResponse {
+    private fun call(): EasyResponse {
+        rsp = given().filter(LoggingFilter(loggingConfig))
+        loadHttpConfig()
+        loadRequestSpecification()
         response = rsp
             .request(model.method, model.path ?: "")
             .then().extract().response()
-        return EasyResponse(response, model.requirements, model)
+        return EasyResponse(response, model)
     }
 
-    fun cc(): EasyResponse {
-        return retry {
+    private fun loadHttpConfig() {
+        rsp.urlEncodingEnabled(httpConfig.urlEncodingEnabled)
+    }
+
+    private fun loadRequestSpecification() {
+        if (model.headers != null) rsp.headers(model.headers)
+        if (model.body != null) rsp.body(model.body)
+        if (model.cookies != null) rsp.cookies(model.cookies)
+        if (model.queryParams != null) rsp.queryParams(model.queryParams)
+        if (model.formParams != null) rsp.formParams(model.formParams)
+        rsp.baseUri(model.protocol.protocolPart + model.baseUri)
+    }
+
+    /**
+     * Call & check
+     */
+    fun cc(
+        retryLimit: Int = TestManager.getConfig().defaultRetryCount,
+        interval: Long = TestManager.getConfig().defaultPollingDelay,
+    ): EasyResponse {
+        return retry(retryLimit, interval) {
             call().validate()
         }
     }
 
-    fun setHeaders(headers: Headers): Returns<ReturnedType> {
+    fun setHeaders(headers: MutableMap<String, Any>): Returns<ReturnedType> {
         this.model.headers = headers
         return this
     }
 
-    fun overrideHeader(header: Header): Returns<ReturnedType> {
-        this.model.headers?.removeAll { it.hasSameNameAs(header) }
-        this.model.headers?.asList()?.add(header)
+
+    fun addHeaders(headers: MutableMap<String, Any>): Returns<ReturnedType> {
+        if (this.model.headers == null) {
+            this.model.headers = headers
+        } else {
+            this.model.headers!!.putAllNotDuplicate(headers)
+        }
+        return this
+    }
+
+    fun overrideHeaders(headers: MutableMap<String, Any>): Returns<ReturnedType> {
+        for (header in headers) {
+            this.model.headers?.replace(header.key, header.value)
+        }
         return this
     }
 
@@ -83,14 +182,17 @@ open class Returns<ReturnedType : Any>(
         return this
     }
 
-    fun setQueryParams(queryParams: Map<String, Any>?): Returns<ReturnedType> {
+    fun setQueryParams(queryParams: MutableMap<String, Any>?): Returns<ReturnedType> {
         this.model.queryParams = queryParams
         return this
     }
 
+    fun setFormParams(mutableMap: MutableMap<String, Any>) {
+        this.model.formParams = mutableMap
+    }
+
     fun setBody(body: Any): Returns<ReturnedType> {
         this.model.body = body
-        rsp.body(this.model.body)
         return this
     }
 
@@ -99,31 +201,10 @@ open class Returns<ReturnedType : Any>(
         return this
     }
 
-    fun setParamsForPath(vararg params: String): Returns<ReturnedType> {
-        if (model.path == null) throw Exceptions.NoParamsException("Path is null")
-        var paramsCount = 0
-        var newPath = ""
-        model.path!!.split("/").filter { it.isNotEmpty() }.forEach {
-            if (newPath.isNotEmpty()) newPath += "/"
-            if (it[0].toString() == "@") {
-                try {
-                    newPath += params[paramsCount]
-                } catch (e: IndexOutOfBoundsException) {
-                    throw Exception("Insufficient amount of params passed to set for path $model.path, only got ${params.size} params\n + $e")
-                }
-                paramsCount++
-            } else {
-                newPath += it
-            }
-        }
-        model.path = newPath
-        return this
-    }
-
     fun setParamsForPath(params: Map<String, String>): Returns<ReturnedType> {
         if (model.path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
         var newPath: String = model.path!!
-        if (newPath[0] == "/".toCharArray()[0]) newPath = newPath.substring(1, newPath.length)
+        if (newPath[0] == '/') newPath = newPath.substring(1, newPath.length)
         params.forEach { (t, u) -> newPath = newPath.replace("@", "").replaceIfExists(t, u) }
         model.path = newPath
         return this

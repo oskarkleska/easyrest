@@ -26,7 +26,7 @@ class CrudPost : EndpointModel(
     protocol = Protocol.HTTPS,
     baseUri = URI,
     path = "$PATH/resource",
-    headers = Headers(listOf(Header("Content-Type", "application/json"))),
+    headers = mutableMapOf("Content-Type" to "application/json"),
     requirements = Requirements(statusCode = 201, responseTime = 10L)
 ) {
     private val positive = Returns<RandomResourceResponse>(this)
@@ -71,7 +71,7 @@ class CrudUpdate : EndpointModel(
     Protocol.HTTPS,
     URI,
     path = "$PATH/resource/@id",
-    headers = Headers(listOf(Header("Content-Type", "application/json"))),
+    headers = mutableMapOf("Content-Type" to "application/json"),
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 ) {
     private val positive = Returns<Unit>(this)

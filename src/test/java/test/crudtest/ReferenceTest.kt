@@ -18,7 +18,7 @@ class ReferenceTest {
 
     @BeforeAll
     fun getBrandNewDashboardId() {
-        retry {
+        retry(3, 1000) {
             dashboardId = given()
                 .baseUri("https://crudcrud.com/")
                 .get()
@@ -40,7 +40,7 @@ class ReferenceTest {
     @Test
     @Order(1)
     fun createResource() {
-        val resp = retry {
+        val resp = retry(3, 1000)  {
             val response = given()
                 .baseUri("https://crudcrud.com/")
                 .contentType("application/json")
@@ -61,7 +61,7 @@ class ReferenceTest {
     @Test
     @Order(2)
     fun getResource() {
-        val rsp = retry {
+        val rsp = retry(3, 1000)  {
             val response = given()
                 .baseUri("https://crudcrud.com/")
                 .get("api/$dashboardId/resource/$id")
@@ -85,7 +85,7 @@ class ReferenceTest {
     fun putResource() {
         val updatedResource = newResource
         updatedResource.isTrue = false
-        retry {
+        retry(3, 1000)  {
             val response = given()
                 .baseUri("https://crudcrud.com/")
                 .contentType("application/json")
@@ -104,7 +104,7 @@ class ReferenceTest {
     @Test
     @Order(4)
     fun getUpdatedResource() {
-        val rsp = retry {
+        val rsp = retry(3, 1000)  {
             val response = given()
                 .baseUri("https://crudcrud.com/")
                 .get("api/$dashboardId/resource/$id")
@@ -126,7 +126,7 @@ class ReferenceTest {
     @Test
     @Order(5)
     fun deleteResource() {
-        retry {
+        retry(3, 1000)  {
             val response = given()
                 .baseUri("https://crudcrud.com/")
                 .delete("api/$dashboardId/resource/$id")
@@ -143,7 +143,7 @@ class ReferenceTest {
     @Test
     @Order(6)
     fun get404NoResource() {
-        retry {
+        retry(3, 1000)  {
             val response = given()
                 .baseUri("https://crudcrud.com/")
                 .get("api/$dashboardId/resource/$id")

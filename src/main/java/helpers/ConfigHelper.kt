@@ -36,10 +36,6 @@ object ConfigHelper {
     }
 
     private fun getBaseConfig(): EasyRestConfig {
-//        return mapper.readValue(
-//            File(this::class.java.classLoader.getResource(DEFAULT_CONFIG_PATH).toURI()),
-//            EasyRestConfig::class.java
-//        )
         return EasyRestConfig(
             LoggingConfig(
                 logRequests = true,

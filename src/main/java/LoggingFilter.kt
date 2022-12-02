@@ -6,15 +6,14 @@ import io.restassured.specification.FilterableResponseSpecification
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-class LoggingFilter : Filter {
-    private val config = TestManager.getConfig().loggingConfig
+class LoggingFilter(private val config: LoggingConfig) : Filter {
     private val log: Logger = LogManager.getLogger(this::class.java)
 
     @Synchronized
     override fun filter(
         request: FilterableRequestSpecification,
         responseSpec: FilterableResponseSpecification?,
-        filterContext: FilterContext
+        filterContext: FilterContext,
     ): Response? {
         val response = filterContext.next(request, responseSpec)
         val requestLogs = StringBuilder()
@@ -24,29 +23,31 @@ class LoggingFilter : Filter {
                 requestLogs.append("${ov(request.method)} ${ov(request.uri)}\n")
             }
             if (config.logHeaders) {
-                requestLogs.append("Headers: ${ov(request.headers)}\n")
+                val headers = request.headers.filter {it.name.lowercase() != "authorization"}
+                requestLogs.append("Headers: $headers\n")
             }
             if (config.logCookies) {
                 requestLogs.append("Cookies: ${ov(request.cookies)}\n")
             }
             if (config.logPayload) {
-                requestLogs.append("Body: ${ov(request.getBody())}\n")
-                requestLogs.append("Form Params: ${ov(request.formParams)}\n")
-                requestLogs.append("MultiPart: ${ov(request.multiPartParams)}\n")
+                if (ov(request.getBody()) != null) requestLogs.append("Body: ${ov(request.getBody())}\n")
+                if (ov(request.formParams) != null) requestLogs.append("Form Params: ${ov(request.formParams)}\n")
+                if (ov(request.multiPartParams) != null) requestLogs.append("MultiPart: ${ov(request.multiPartParams)}\n")
             }
         }
         val responseLogs = StringBuilder()
         if (config.logResponses) {
             responseLogs.append("\n*****\t\tRESPONSE\t\t*****\n")
             responseLogs.append("Status Line: ${response.statusLine()}\n")
-            if(config.logTiming) {
+            if (config.logTiming) {
                 responseLogs.append("Time taken [ms]: ${response.time}\n")
             }
-            if(config.logPayload && !response.contentType.contains("pdf")) {
-                if(!response.contentType.contains("html") ||
-                    (response.contentType.contains("html") && config.logHtmlResponse)) {
-                    responseLogs.append("Body: ${response.asString()}")
-                }
+            if (config.logPayload
+                && !response.contentType.contains("pdf")
+                && (!response.contentType.contains("html") ||
+                        (response.contentType.contains("html") && config.logHtmlResponse))
+            ) {
+                responseLogs.append("Body: ${response.asString()}")
             }
         }
 

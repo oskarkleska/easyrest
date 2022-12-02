@@ -10,25 +10,6 @@ class UnitTest {
     private val dummy = Returns<String>(DummyModel())
 
     @Test
-    fun checkSettingParamsForPathWithVarargs() {
-        assertEquals(
-            "Setting params for path is broken",
-            "asd/zxc",
-            dummy.setPath("asd/@p1").setParamsForPath("zxc").model.path
-        )
-        assertEquals(
-            "Setting params for path is broken",
-            "asd/zxc",
-            dummy.setPath("/asd/@p1").setParamsForPath("zxc").model.path
-        )
-        assertEquals(
-            "Setting params for path is broken",
-            "zxc/asd/qqq",
-            dummy.setPath("@p1/asd/@p2").setParamsForPath("zxc", "qqq").model.path
-        )
-    }
-
-    @Test
     fun checkSettingParamsForPathWithMap() {
         assertEquals(
             "Setting params for path is broken",

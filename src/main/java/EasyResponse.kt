@@ -3,36 +3,39 @@ import io.restassured.response.Response
 import net.pwall.json.schema.JSONSchema
 import org.junit.jupiter.api.Assertions.assertAll
 
-data class EasyResponse(val response: Response, val requirements: Requirements?, val model: EndpointModel) {
+data class EasyResponse(val response: Response, val model: EndpointModel) {
 
     fun validate(): EasyResponse {
-        if (requirements == null) return this
+        if (model.requirements == null) {
+            return this
+        }
         assertAll(
-            "Checking if response to ${getCalledEndpoint()} meets specification",
-            {
+            { // Check status code.
                 assert(
-                    if (requirements.statusCode == null) {
+                    if (model.requirements!!.statusCode == null) {
                         true
                     } else {
-                        response.statusCode == requirements.statusCode
+                        response.statusCode == model.requirements!!.statusCode
                     }
-                ) { "Wrong status code calling ${getCalledEndpoint()}, expected ${requirements.statusCode} but got ${response.statusCode}" }
+                ) {
+                    "Wrong status code calling ${getEndpointPattern()}, expected ${model.requirements!!.statusCode} but got ${response.statusCode}"
+                }
             },
-            {
+            { // Check schema file
                 assert(
-                    if (requirements.schemaFile != null) {
-                        JSONSchema.parseFile(requirements.schemaFile).validate(response.body.print())
+                    if (model.requirements!!.schemaFile != null) {
+                        JSONSchema.parseFile(model.requirements!!.schemaFile!!).validate(response.body.print())
                     } else {
                         true
                     }
-                ) { "Schema of ${getCalledEndpoint()} does not meet requirements, check response" }
+                ) { "Schema of ${getEndpointPattern()} does not meet requirements, check response" }
             },
-            {
-                softAssert("Too long response time calling ${getCalledEndpoint()}, expected ${requirements.responseTime}ms but got ${response.time}ms") {
-                    if (requirements.responseTime == null)
+            { // Soft assert on response time
+                softAssert("Too long response time calling ${getEndpointPattern()}, expected ${model.requirements!!.responseTime}ms but got ${response.time}ms") {
+                    if (model.requirements!!.responseTime == null)
                         true
                     else
-                        response.time <= requirements.responseTime
+                        response.time <= model.requirements!!.responseTime!!
                 }
             }
         )
@@ -43,7 +46,13 @@ data class EasyResponse(val response: Response, val requirements: Requirements?,
         return this.response.`as`(clazz)
     }
 
-    private fun getCalledEndpoint() : String {
-        return "${model.method} ${model.baseUri}${model.path}"
+    private fun getCalledEndpoint(): String {
+        val params = if (model.queryParams.isNullOrEmpty()) "" else "?${model.queryParams.toString()}"
+        return "${model.method} ${model.baseUri}${model.path}$params"
+    }
+
+    fun getEndpointPattern(): String {
+        val params = if (model.queryParamsPattern.isNullOrEmpty()) "" else "?${model.queryParamsPattern}"
+        return "${model.method} ${model.baseUri}${model.pathPattern}$params"
     }
 }
