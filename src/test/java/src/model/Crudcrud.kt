@@ -1,6 +1,6 @@
 package src.model
 
-import E
+import Returns
 import EndpointModel
 import Protocol
 import Requirements
@@ -18,7 +18,7 @@ class CrudGetDashboard : EndpointModel(
     baseUri = URI,
     requirements = Requirements(statusCode = 200, responseTime = 2000L)
 ) {
-    val positive = E<Unit>(this)
+    val positive = Returns<Unit>(this)
 }
 
 class CrudPost : EndpointModel(
@@ -29,9 +29,9 @@ class CrudPost : EndpointModel(
     headers = Headers(listOf(Header("Content-Type", "application/json"))),
     requirements = Requirements(statusCode = 201, responseTime = 10L)
 ) {
-    private val positive = E<RandomResourceResponse>(this)
+    private val positive = Returns<RandomResourceResponse>(this)
 
-    fun positive(dashboardId: String, body:Any): E<RandomResourceResponse> {
+    fun positive(dashboardId: String, body:Any): Returns<RandomResourceResponse> {
         return positive.setParamsForPath(mapOf("dashboardId" to dashboardId))
             .setBody(body)
     }
@@ -52,13 +52,13 @@ class CrudGet : EndpointModel(
     path = "$PATH/resource/@id",
     requirements = Requirements(statusCode = 200, responseTime = 10L)
 ) {
-    private val positive = E<RandomResourceResponse>(this)
+    private val positive = Returns<RandomResourceResponse>(this)
 
-    fun positive(id: String, dashboardId: String): E<RandomResourceResponse> {
+    fun positive(id: String, dashboardId: String): Returns<RandomResourceResponse> {
         return positive.setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
     }
-    fun notFound(id: String, dashboardId: String): E<Unit> {
-        return E<Unit>(this)
+    fun notFound(id: String, dashboardId: String): Returns<Unit> {
+        return Returns<Unit>(this)
             .setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
             .overrideRequirements(
                 Requirements(statusCode = 404, responseTime = 1000L)
@@ -74,9 +74,9 @@ class CrudUpdate : EndpointModel(
     headers = Headers(listOf(Header("Content-Type", "application/json"))),
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 ) {
-    private val positive = E<Unit>(this)
+    private val positive = Returns<Unit>(this)
 
-    fun positive(id: String, dashboardId: String, body: Any) : E<Unit> {
+    fun positive(id: String, dashboardId: String, body: Any) : Returns<Unit> {
         return positive.setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId)).setBody(body)
     }
 }
@@ -88,9 +88,9 @@ class CrudDelete : EndpointModel(
     "$PATH/resource/@id",
     requirements = Requirements(statusCode = 200, responseTime = 1000L)
 ) {
-    private val positive = E<Unit>(this)
+    private val positive = Returns<Unit>(this)
 
-    fun positive(id: String, dashboardId: String) : E<Unit> {
+    fun positive(id: String, dashboardId: String) : Returns<Unit> {
         return positive.setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
     }
 }

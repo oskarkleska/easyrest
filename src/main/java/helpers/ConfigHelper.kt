@@ -1,6 +1,7 @@
 package helpers
 
 import EasyRestConfig
+import LoggingConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -10,7 +11,6 @@ import java.io.File
 import java.io.FileNotFoundException
 
 object ConfigHelper {
-    private const val DEFAULT_CONFIG_PATH: String = "/config.yaml"
     private val log = LogManager.getLogger(this::class.java)
     private val mapper = ObjectMapper(YAMLFactory())
 
@@ -36,10 +36,24 @@ object ConfigHelper {
     }
 
     private fun getBaseConfig(): EasyRestConfig {
-        return mapper.readValue(
-            File(this::class.java.classLoader.getResource(DEFAULT_CONFIG_PATH).toURI()),
-//            File(this::class.java.getResource(DEFAULT_CONFIG_PATH).toExternalForm()),
-            EasyRestConfig::class.java
+//        return mapper.readValue(
+//            File(this::class.java.classLoader.getResource(DEFAULT_CONFIG_PATH).toURI()),
+//            EasyRestConfig::class.java
+//        )
+        return EasyRestConfig(
+            LoggingConfig(
+                logRequests = true,
+                logResponses = true,
+                logHeaders = true,
+                logCookies = false,
+                logTiming = true,
+                logPayload = true,
+                logUri = true,
+                logQueryParams = true,
+                logHtmlResponse = false
+            ),
+            defaultRetryCount = 5,
+            defaultPollingDelay = 1000
         )
     }
 }

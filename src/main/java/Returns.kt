@@ -7,7 +7,7 @@ import io.restassured.http.Headers
 import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
 
-open class E<ReturnedType : Any>(
+open class Returns<ReturnedType : Any>(
     val model: EndpointModel,
     var classToken: Class<ReturnedType>
 ) {
@@ -25,7 +25,7 @@ open class E<ReturnedType : Any>(
     companion object {
         inline operator fun <reified ReturnedType : Any> invoke(
             model: EndpointModel
-        ): E<ReturnedType> = E(
+        ): Returns<ReturnedType> = Returns(
             model = model,
             classToken = ReturnedType::class.java
         )
@@ -62,44 +62,44 @@ open class E<ReturnedType : Any>(
         }
     }
 
-    fun setHeaders(headers: Headers): E<ReturnedType> {
+    fun setHeaders(headers: Headers): Returns<ReturnedType> {
         this.model.headers = headers
         return this
     }
 
-    fun overrideHeader(header: Header): E<ReturnedType> {
+    fun overrideHeader(header: Header): Returns<ReturnedType> {
         this.model.headers?.removeAll { it.hasSameNameAs(header) }
         this.model.headers?.asList()?.add(header)
         return this
     }
 
-    fun setCookies(cookies: Cookies): E<ReturnedType> {
+    fun setCookies(cookies: Cookies): Returns<ReturnedType> {
         this.model.cookies = cookies
         return this
     }
 
-    fun setPath(path: String): E<ReturnedType> {
+    fun setPath(path: String): Returns<ReturnedType> {
         this.model.path = path
         return this
     }
 
-    fun setQueryParams(queryParams: Map<String, Any>?): E<ReturnedType> {
+    fun setQueryParams(queryParams: Map<String, Any>?): Returns<ReturnedType> {
         this.model.queryParams = queryParams
         return this
     }
 
-    fun setBody(body: Any): E<ReturnedType> {
+    fun setBody(body: Any): Returns<ReturnedType> {
         this.model.body = body
         rsp.body(this.model.body)
         return this
     }
 
-    fun overrideRequirements(requirements: Requirements?): E<ReturnedType> {
+    fun overrideRequirements(requirements: Requirements?): Returns<ReturnedType> {
         this.model.requirements = requirements
         return this
     }
 
-    fun setParamsForPath(vararg params: String): E<ReturnedType> {
+    fun setParamsForPath(vararg params: String): Returns<ReturnedType> {
         if (model.path == null) throw Exceptions.NoParamsException("Path is null")
         var paramsCount = 0
         var newPath = ""
@@ -120,7 +120,7 @@ open class E<ReturnedType : Any>(
         return this
     }
 
-    fun setParamsForPath(params: Map<String, String>): E<ReturnedType> {
+    fun setParamsForPath(params: Map<String, String>): Returns<ReturnedType> {
         if (model.path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
         var newPath: String = model.path!!
         if (newPath[0] == "/".toCharArray()[0]) newPath = newPath.substring(1, newPath.length)

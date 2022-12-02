@@ -7,7 +7,7 @@ class UnitTest {
 
     private class DummyModel : EndpointModel(Method.GET, Protocol.HTTPS, "zzz")
 
-    private val dummy = E<String>(DummyModel())
+    private val dummy = Returns<String>(DummyModel())
 
     @Test
     fun checkSettingParamsForPathWithVarargs() {
