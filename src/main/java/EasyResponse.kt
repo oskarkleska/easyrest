@@ -43,7 +43,11 @@ data class EasyResponse(val response: Response, val model: EndpointModel) {
     }
 
     fun <T : Any> andCastAs(clazz: Class<T>): T {
-        return this.response.`as`(clazz)
+        return try {
+            this.response.`as`(clazz)
+        } catch (e: Exception) {
+            throw Exceptions.ResponseCastException("Response cannot be cast to ${clazz.name}")
+        }
     }
 
     private fun getCalledEndpoint(): String {
@@ -53,6 +57,6 @@ data class EasyResponse(val response: Response, val model: EndpointModel) {
 
     fun getEndpointPattern(): String {
         val params = if (model.queryParamsPattern.isNullOrEmpty()) "" else "?${model.queryParamsPattern}"
-        return "${model.method} ${model.baseUri}${model.pathPattern}$params"
+        return "${model.method}${model.baseUri}${model.pathPattern}$params"
     }
 }

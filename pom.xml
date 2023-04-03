@@ -92,7 +92,7 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>test-compile</id>
+                        <id>tests-compile</id>
                         <phase>test-compile</phase>
                         <goals>
                             <goal>test-compile</goal>

@@ -1,4 +1,4 @@
-package test.crudtest
+package tests.crudtest
 
 import Utils.retry
 import Utils.softAssert
@@ -7,7 +7,7 @@ import io.restassured.RestAssured.given
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
 import stubs.crudtest.CrudStubs
-import test.BaseWiremockTest
+import tests.BaseWiremockTest
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

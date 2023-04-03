@@ -1,4 +1,4 @@
-package test.params
+package tests.params
 
 import EndpointModel
 import Exceptions

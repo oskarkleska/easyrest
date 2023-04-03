@@ -1,25 +1,23 @@
-package src.model.ccc
+package src.endpoints.crud
 
+import EasyResponse
 import Returns
 import EndpointModel
 import Protocol
 import Requirements
 import io.restassured.http.Method.*
-import test.callcheckandcast.SimpleResponseForCasting
-import test.crudtest.RandomResourceResponse
+import tests.crudtest.RandomResourceResponse
 
 private const val URI = "localhost:8080"
-private const val PATH = "ccc"
+private const val PATH = "api/@dashboardId"
 
-class GetSimpleResponse : EndpointModel(
+class WMCrudGetDashboard : EndpointModel(
     method = GET,
     protocol = Protocol.HTTP,
     baseUri = URI,
-    path = PATH,
-    headers = mutableMapOf("Accept" to "application/json"),
     requirements = Requirements(statusCode = 200, responseTime = 2000L)
 ) {
-    fun go() = Returns<SimpleResponseForCasting>(this).ccc()
+    fun positive() = Returns<Unit>(this).cc()
 }
 
 class WMCrudPost : EndpointModel(
@@ -58,12 +56,13 @@ class WMCrudGet : EndpointModel(
     fun positive(id: String, dashboardId: String): Returns<RandomResourceResponse> {
         return positive.setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
     }
-    fun notFound(id: String, dashboardId: String): Returns<Unit> {
+    fun notFound(id: String, dashboardId: String): EasyResponse {
         return Returns<Unit>(this)
             .setParamsForPath(mapOf("id" to id, "dashboardId" to dashboardId))
             .overrideRequirements(
                 Requirements(statusCode = 404, responseTime = 1000L)
             )
+            .cc()
     }
 }
 

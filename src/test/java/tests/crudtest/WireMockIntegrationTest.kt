@@ -1,18 +1,18 @@
-package test.crudtest
+package tests.crudtest
 
 import Exceptions
 import Utils.softAssertions
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
+import src.endpoints.crud.*
 import src.model.*
-import src.model.crud.*
 import stubs.crudtest.CrudStubs.stubDeleteResource
 import stubs.crudtest.CrudStubs.stubGetDashboardId
 import stubs.crudtest.CrudStubs.stubGetResource
 import stubs.crudtest.CrudStubs.stubPost
 import stubs.crudtest.CrudStubs.stubPutResource
-import test.BaseWiremockTest
+import tests.BaseWiremockTest
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -87,6 +87,6 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(6)
     fun get404NoResource() {
         stubGetResource(dashboardId, id)
-        WMCrudGet().notFound(id, dashboardId).cc()
+        WMCrudGet().notFound(id, dashboardId)
     }
 }

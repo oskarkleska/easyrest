@@ -4,8 +4,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.google.gson.Gson
 import org.apache.http.HttpHeaders.CONTENT_TYPE
-import test.crudtest.RandomResource
-import test.crudtest.RandomResourceResponse
+import tests.crudtest.RandomResource
+import tests.crudtest.RandomResourceResponse
 import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.collections.ArrayList

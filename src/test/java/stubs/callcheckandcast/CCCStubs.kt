@@ -1,14 +1,11 @@
 package stubs.callcheckandcast
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.google.gson.Gson
-import org.apache.http.HttpHeaders.CONTENT_TYPE
-import test.callcheckandcast.SimpleResponseForCasting
-import test.crudtest.RandomResource
-import test.crudtest.RandomResourceResponse
-import java.util.*
-import kotlin.NoSuchElementException
+import tests.callcheckandcast.SimpleResponseForCasting
+import tests.crudtest.RandomResourceResponse
 import kotlin.collections.ArrayList
 
 object CCCStubs {
@@ -22,75 +19,33 @@ object CCCStubs {
         )
     )
 
-    fun stubPost(dashboardId: String, resource: RandomResource): StubMapping {
-        val id = resourceList.add(resource)
-        val objToReturn = resourceList.find { it._id == id } ?: throw NoSuchElementException("Problem")
-        return stubFor(
-            post(urlMatching("^/api/$dashboardId/resource$")).willReturn(
-                aResponse()
-                    .withBody(toJson(objToReturn))
-                    .withStatus(201)
-                    .withHeader(CONTENT_TYPE, "application/json")
-            )
-        )
-    }
-
-    fun stubGetResource(dashboardId: String, id: String): StubMapping {
-        val objToReturn = resourceList.find { it._id == id }
-
-        return stubFor(
-            get(urlMatching("^/api/$dashboardId/resource/$id$")).willReturn(
-                if (objToReturn == null) {
+    fun stubGetWithRetries() {
+        stubFor(
+            get(urlEqualTo("/ccc/retries")).inScenario("Retries hp")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(
                     aResponse()
                         .withStatus(404)
-                } else {
+                )
+                .willSetStateTo("FirstFailed")
+        )
+        stubFor(
+            get(urlEqualTo("/ccc/retries")).inScenario("Retries hp")
+                .whenScenarioStateIs("FirstFailed")
+                .willReturn(
                     aResponse()
-                        .withBody(toJson(objToReturn))
+                        .withStatus(404)
+                )
+                .willSetStateTo("SecondFailed")
+        )
+        stubFor(
+            get(urlEqualTo("/ccc/retries")).inScenario("Retries hp")
+                .whenScenarioStateIs("SecondFailed")
+                .willReturn(
+                    aResponse()
                         .withStatus(200)
-                        .withHeader(CONTENT_TYPE, "application/json")
-                }
-            )
+                )
         )
-    }
-
-    fun stubPutResource(dashboardId: String, id: String, updatedResource: RandomResource): StubMapping {
-        resourceList.update(updatedResource, id)
-        return stubFor(
-            put(urlMatching("^/api/$dashboardId/resource/$id$")).willReturn(
-                aResponse().withStatus(200)
-            )
-        )
-    }
-
-    fun stubDeleteResource(dashboardId: String, id: String): StubMapping {
-        resourceList.removeIf { it._id == id } ?: throw NoSuchElementException("Element not found")
-        return stubFor(
-            delete(urlMatching("^/api/$dashboardId/resource/$id$")).willReturn(
-                aResponse().withStatus(200)
-            )
-        )
-    }
-
-    private fun ArrayList<RandomResourceResponse>.add(resource: RandomResource): String {
-        val id = UUID.randomUUID().toString()
-        resourceList.add(
-            RandomResourceResponse(
-                name = resource.name,
-                count = resource.count,
-                isTrue = resource.isTrue,
-                _id = id
-            )
-        )
-        return id
-    }
-
-    private fun ArrayList<RandomResourceResponse>.update(resource: RandomResource, id: String) {
-        val element = resourceList.find { it._id == id } ?: return
-        element.count = resource.count
-        element.isTrue = resource.isTrue
-        element.name = resource.name
-        resourceList.removeIf { it._id == id }
-        resourceList.add(element)
     }
     private fun toJson(obj: Any) = Gson().toJson(obj)
 

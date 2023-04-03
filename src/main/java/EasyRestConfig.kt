@@ -1,17 +1,17 @@
 data class EasyRestConfig(
-    val loggingConfig: LoggingConfig,
-    val defaultRetryCount: Int,
-    val defaultPollingDelay: Long,
+    val loggingConfig: LoggingConfig = LoggingConfig(),
+    val defaultRetryCount: Int = 5,
+    val defaultPollingDelay: Long = 500L,
 )
 
 data class LoggingConfig(
-    val logRequests: Boolean,
-    val logResponses: Boolean,
-    val logHeaders: Boolean,
-    val logCookies: Boolean,
-    val logTiming: Boolean,
-    val logPayload: Boolean,
-    val logUri: Boolean,
-    val logQueryParams: Boolean,
-    val logHtmlResponse: Boolean
+    val logRequests: Boolean = true,
+    val logResponses: Boolean = true,
+    val logHeaders: Boolean = true,
+    val logCookies: Boolean = false,
+    val logTiming: Boolean = true,
+    val logPayload: Boolean = true,
+    val logUri: Boolean = true,
+    val logQueryParams: Boolean = true,
+    val logHtmlResponse: Boolean = false
 )

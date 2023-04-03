@@ -31,8 +31,7 @@ object ConfigHelper {
     }
 
     fun findConfigPath(): String {
-        // todo logic to find config path
-        return "confxxig.yaml"
+        return "config.yaml"
     }
 
     private fun getBaseConfig(): EasyRestConfig {

@@ -1,4 +1,4 @@
-package test.crudtest
+package tests.crudtest
 
 data class RandomResource(val name: String, val count: Int, var isTrue: Boolean)
 
