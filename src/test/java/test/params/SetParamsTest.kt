@@ -1,4 +1,4 @@
-package test.units
+package test.params
 
 import EndpointModel
 import Exceptions
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.DefaultAsserter.assertEquals
 
-class UnitTest {
+class SetParamsTest {
 
     private class DummyModel : EndpointModel(Method.GET, Protocol.HTTPS, "zzz")
 

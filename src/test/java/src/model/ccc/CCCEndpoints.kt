@@ -1,24 +1,25 @@
-package src.model
+package src.model.ccc
 
 import Returns
 import EndpointModel
 import Protocol
 import Requirements
-import io.restassured.http.Header
-import io.restassured.http.Headers
 import io.restassured.http.Method.*
+import test.callcheckandcast.SimpleResponseForCasting
 import test.crudtest.RandomResourceResponse
 
 private const val URI = "localhost:8080"
-private const val PATH = "api/@dashboardId"
+private const val PATH = "ccc"
 
-class WMCrudGetDashboard : EndpointModel(
+class GetSimpleResponse : EndpointModel(
     method = GET,
     protocol = Protocol.HTTP,
     baseUri = URI,
+    path = PATH,
+    headers = mutableMapOf("Accept" to "application/json"),
     requirements = Requirements(statusCode = 200, responseTime = 2000L)
 ) {
-    fun positive() = Returns<Unit>(this).cc()
+    fun go() = Returns<SimpleResponseForCasting>(this).ccc()
 }
 
 class WMCrudPost : EndpointModel(

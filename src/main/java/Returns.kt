@@ -2,8 +2,10 @@ import Utils.putAllNotDuplicate
 import Utils.replaceIfExists
 import Utils.retry
 import helpers.HttpConfig
+import io.restassured.RestAssured
 import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
+import io.restassured.parsing.Parser
 import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
@@ -19,6 +21,9 @@ open class Returns<ReturnedType : Any>(
     private lateinit var rsp: RequestSpecification
     private val log: Logger = LogManager.getLogger(this::class.java)
 
+    init {
+        RestAssured.defaultParser = Parser.JSON
+    }
     companion object {
 
         inline operator fun <reified ReturnedType : Any> invoke(

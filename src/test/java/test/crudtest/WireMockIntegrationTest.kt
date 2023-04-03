@@ -2,32 +2,26 @@ package test.crudtest
 
 import Exceptions
 import Utils.softAssertions
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.ThreadContext
 import org.junit.jupiter.api.*
 import src.model.*
-import stubs.IntegrationTests.stubDeleteResource
-import stubs.IntegrationTests.stubGetDashboardId
-import stubs.IntegrationTests.stubGetResource
-import stubs.IntegrationTests.stubPost
-import stubs.IntegrationTests.stubPutResource
+import src.model.crud.*
+import stubs.crudtest.CrudStubs.stubDeleteResource
+import stubs.crudtest.CrudStubs.stubGetDashboardId
+import stubs.crudtest.CrudStubs.stubGetResource
+import stubs.crudtest.CrudStubs.stubPost
+import stubs.crudtest.CrudStubs.stubPutResource
+import test.BaseWiremockTest
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class WireMockIntegrationTest {
+class WireMockIntegrationTest : BaseWiremockTest() {
     private lateinit var id: String
     private lateinit var dashboardId: String
     private val newResource = RandomResource("Something", Random().nextInt(100), true)
     private val log = LogManager.getLogger(this::class.java)
-
-    init {
-        ThreadContext.put("ROUTING_KEY", "example_test")
-        WireMockServer(WireMockConfiguration.options().port(8080).enableBrowserProxying(false)).start()
-    }
 
     @BeforeAll
     fun getBrandNewDashboardId() {

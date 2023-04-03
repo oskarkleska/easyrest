@@ -1,21 +1,24 @@
-package stubs
+package stubs.callcheckandcast
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.google.gson.Gson
 import org.apache.http.HttpHeaders.CONTENT_TYPE
+import test.callcheckandcast.SimpleResponseForCasting
 import test.crudtest.RandomResource
 import test.crudtest.RandomResourceResponse
 import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.collections.ArrayList
 
-object IntegrationTests {
+object CCCStubs {
     private val resourceList: ArrayList<RandomResourceResponse> = arrayListOf()
 
-    fun stubGetDashboardId(): StubMapping = stubFor(
-        get(urlEqualTo("/")).willReturn(
-            aResponse().withHeader("Set-Cookie", "UniqueEndpointId=123")
+    fun stubGetCCC(): StubMapping = stubFor(
+        get(urlEqualTo("/ccc")).willReturn(
+            aResponse()
+                .withBody(toJson(SimpleResponseForCasting("uniqueId", "uniqueName", 123)))
+                .withStatus(200)
         )
     )
 
