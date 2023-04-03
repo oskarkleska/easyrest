@@ -1,3 +1,9 @@
+package test.units
+
+import EndpointModel
+import Exceptions
+import Protocol
+import Returns
 import io.restassured.http.Method
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

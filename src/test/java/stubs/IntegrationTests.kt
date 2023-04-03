@@ -13,9 +13,6 @@ import kotlin.collections.ArrayList
 object IntegrationTests {
     private val resourceList: ArrayList<RandomResourceResponse> = arrayListOf()
 
-
-
-
     fun stubGetDashboardId(): StubMapping = stubFor(
         get(urlEqualTo("/")).willReturn(
             aResponse().withHeader("Set-Cookie", "UniqueEndpointId=123")
