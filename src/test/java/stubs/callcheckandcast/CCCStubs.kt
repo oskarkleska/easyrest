@@ -47,6 +47,35 @@ object CCCStubs {
                 )
         )
     }
+
+    fun stubGetWithRetriesForOverridenRequirements() {
+        stubFor(
+            get(urlEqualTo("/ccc/retries/200to201")).inScenario("Retries for overriden requirements")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(
+                    aResponse()
+                        .withStatus(404)
+                )
+                .willSetStateTo("FirstFailed")
+        )
+        stubFor(
+            get(urlEqualTo("/ccc/retries/200to201")).inScenario("Retries for overriden requirements")
+                .whenScenarioStateIs("FirstFailed")
+                .willReturn(
+                    aResponse()
+                        .withStatus(404)
+                )
+                .willSetStateTo("SecondFailed")
+        )
+        stubFor(
+            get(urlEqualTo("/ccc/retries/200to201")).inScenario("Retries for overriden requirements")
+                .whenScenarioStateIs("SecondFailed")
+                .willReturn(
+                    aResponse()
+                        .withStatus(201)
+                )
+        )
+    }
     private fun toJson(obj: Any) = Gson().toJson(obj)
 
 }

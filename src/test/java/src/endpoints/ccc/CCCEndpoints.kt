@@ -29,8 +29,17 @@ class Retries : EndpointModel(
     protocol = Protocol.HTTP,
     baseUri = URI,
     path = "$PATH/retries",
-    requirements = Requirements(statusCode = 200, responseTime = 2000L)
+    requirements = Requirements(statusCode = 200)
 ) {
     fun go() = Returns<Unit>(this).cc(interval = 0L, retryLimit = 3)
-    fun fail() = Returns<Unit>(this).cc(interval = 0L, retryLimit = 1)
+    fun failCode404() = Returns<Unit>(this).cc(interval = 0L, retryLimit = 1)
+    fun failTime() =
+        Returns<Unit>(this)
+            .overrideRequirements(Requirements(404, responseTime = 1L))
+            .cc(interval = 0L, retryLimit = 1)
+    fun overridenReqsHPs() =
+        Returns<Unit>(this)
+            .setPath("$PATH/retries/200to201")
+            .overrideRequirements(Requirements(201))
+            .cc(interval = 0L, retryLimit = 3)
 }

@@ -15,6 +15,18 @@ open class EndpointModel(
 ) {
     val pathPattern = path
     val queryParamsPattern = queryParams
+    private var tempRequirements: Requirements? = requirements
+    fun setTempRequirements(requirements: Requirements?) {
+        this.tempRequirements = requirements
+    }
+
+    fun getCurrentRequirements(): Requirements? {
+        return if (tempRequirements != null) tempRequirements else requirements
+    }
+
+    fun resetRequirements() {
+        this.tempRequirements = requirements
+    }
 }
 
 data class Requirements(

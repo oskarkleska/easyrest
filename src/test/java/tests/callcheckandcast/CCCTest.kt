@@ -1,5 +1,6 @@
 package tests.callcheckandcast
 
+import Utils.softAssertions
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.junit.jupiter.api.*
 import src.model.*
@@ -7,6 +8,7 @@ import src.endpoints.ccc.GetSimpleResponse
 import src.endpoints.ccc.Retries
 import stubs.callcheckandcast.CCCStubs.stubGetCCC
 import stubs.callcheckandcast.CCCStubs.stubGetWithRetries
+import stubs.callcheckandcast.CCCStubs.stubGetWithRetriesForOverridenRequirements
 import tests.BaseWiremockTest
 import java.util.*
 
@@ -42,26 +44,34 @@ class CCCTest : BaseWiremockTest(){
     }
 
     @Test
-    fun checkResponseTimeHP() {
-
-    }
-
-    @Test
-    fun checkResponseTimeFail() {
-
-    }
-
-    @Test
     fun retriesHP() {
         stubGetWithRetries()
         Retries().go()
     }
 
     @Test
-    fun retriesFail() {
+    fun retriesFailOnCode() {
         stubGetWithRetries()
         assertThrows<AssertionError>("Wrong status code calling GET localhost:8080/ccc/retries, expected 200 but got 404"){
-            Retries().fail()
+            Retries().failCode404()
         }
+    }
+
+    @Test
+    fun retriesFailOnResponseTime() {
+        stubGetWithRetries()
+        softAssertions.removeAll{true}
+        Retries().failTime()
+        assert(softAssertions.size == 1)
+        assert(softAssertions[0].startsWith("Too long response time calling GET localhost:8080/ccc/retries, expected 1ms"))
+        softAssertions.removeAt(0)
+    }
+
+    @Test
+    fun overrideWorksForAllRequestsInOneCC() {
+        stubGetWithRetriesForOverridenRequirements()
+        val retries = Retries()
+        retries.overridenReqsHPs()
+        retries.go() // todo fix issue with permanent overriding model of an existing endpoint definition
     }
 }

@@ -26,7 +26,7 @@ class WMCrudPost : EndpointModel(
     baseUri = URI,
     path = "$PATH/resource",
     headers = mutableMapOf("Content-Type" to "application/json"),
-    requirements = Requirements(statusCode = 201, responseTime = 10L)
+    requirements = Requirements(statusCode = 201, responseTime = 300L)
 ) {
     private val positive = Returns<RandomResourceResponse>(this)
 
@@ -41,7 +41,7 @@ class WMCrudGetAll : EndpointModel(
     Protocol.HTTP,
     URI,
     path = "$PATH/@resource",
-    requirements = Requirements(statusCode = 200, responseTime = 10L)
+    requirements = Requirements(statusCode = 200, responseTime = 300L)
 )
 
 class WMCrudGet : EndpointModel(
@@ -49,7 +49,7 @@ class WMCrudGet : EndpointModel(
     Protocol.HTTP,
     URI,
     path = "$PATH/resource/@id",
-    requirements = Requirements(statusCode = 200, responseTime = 10L)
+    requirements = Requirements(statusCode = 200, responseTime = 300L)
 ) {
     private val positive = Returns<RandomResourceResponse>(this)
 

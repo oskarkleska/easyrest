@@ -6,39 +6,35 @@ import org.junit.jupiter.api.Assertions.assertAll
 data class EasyResponse(val response: Response, val model: EndpointModel) {
 
     fun validate(): EasyResponse {
-        if (model.requirements == null) {
-            return this
-        }
+        val requirements = model.getCurrentRequirements() ?: return this
         assertAll(
             { // Check status code.
                 assert(
-                    if (model.requirements!!.statusCode == null) {
+                    if (requirements.statusCode == null) {
                         true
                     } else {
-                        response.statusCode == model.requirements!!.statusCode
+                        response.statusCode == requirements.statusCode
                     }
                 ) {
-                    "Wrong status code calling ${getEndpointPattern()}, expected ${model.requirements!!.statusCode} but got ${response.statusCode}"
+                    "Wrong status code calling ${getEndpointPattern()}, expected ${requirements.statusCode} but got ${response.statusCode}"
                 }
             },
             { // Check schema file
                 assert(
-                    if (model.requirements!!.schemaFile != null) {
-                        JSONSchema.parseFile(model.requirements!!.schemaFile!!).validate(response.body.print())
-                    } else {
-                        true
-                    }
+                    if (requirements.schemaFile != null) JSONSchema.parseFile(requirements.schemaFile)
+                        .validate(response.body.print()) else true
                 ) { "Schema of ${getEndpointPattern()} does not meet requirements, check response" }
             },
             { // Soft assert on response time
-                softAssert("Too long response time calling ${getEndpointPattern()}, expected ${model.requirements!!.responseTime}ms but got ${response.time}ms") {
-                    if (model.requirements!!.responseTime == null)
+                softAssert("Too long response time calling ${getEndpointPattern()}, expected ${requirements.responseTime}ms but got ${response.time}ms") {
+                    if (requirements.responseTime == null)
                         true
                     else
-                        response.time <= model.requirements!!.responseTime!!
+                        response.time <= requirements.responseTime
                 }
             }
         )
+        model.resetRequirements()
         return this
     }
 
@@ -57,6 +53,6 @@ data class EasyResponse(val response: Response, val model: EndpointModel) {
 
     fun getEndpointPattern(): String {
         val params = if (model.queryParamsPattern.isNullOrEmpty()) "" else "?${model.queryParamsPattern}"
-        return "${model.method}${model.baseUri}${model.pathPattern}$params"
+        return "${model.method} ${model.baseUri}${model.pathPattern}$params"
     }
 }

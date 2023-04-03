@@ -202,7 +202,7 @@ open class Returns<ReturnedType : Any>(
     }
 
     fun overrideRequirements(requirements: Requirements?): Returns<ReturnedType> {
-        this.model.requirements = requirements
+        this.model.setTempRequirements(requirements)
         return this
     }
 
