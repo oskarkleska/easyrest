@@ -39,7 +39,7 @@ class Retries : EndpointModel(
             .cc(interval = 0L, retryLimit = 1)
     fun overridenReqsHPs() =
         Returns<Unit>(this)
-            .setPath("$PATH/retries/200to201")
+            .overridePath("$PATH/retries/200to201")
             .overrideRequirements(Requirements(201))
             .cc(interval = 0L, retryLimit = 3)
 }

@@ -125,7 +125,7 @@ open class Returns<ReturnedType : Any>(
         loadHttpConfig()
         loadRequestSpecification()
         response = rsp
-            .request(model.method, model.path ?: "")
+            .request(model.method, model.getCurrentPath() ?: "")
             .then().extract().response()
         return EasyResponse(response, model)
     }
@@ -182,17 +182,17 @@ open class Returns<ReturnedType : Any>(
         return this
     }
 
-    fun setPath(path: String): Returns<ReturnedType> {
-        this.model.path = path
+    fun overridePath(path: String): Returns<ReturnedType> {
+        this.model.setTempPath(path)
         return this
     }
 
-    fun setQueryParams(queryParams: MutableMap<String, Any>?): Returns<ReturnedType> {
+    fun overrideQueryParams(queryParams: MutableMap<String, Any>?): Returns<ReturnedType> {
         this.model.queryParams = queryParams
         return this
     }
 
-    fun setFormParams(mutableMap: MutableMap<String, Any>) {
+    fun overrideFormParams(mutableMap: MutableMap<String, Any>) {
         this.model.formParams = mutableMap
     }
 
@@ -207,11 +207,11 @@ open class Returns<ReturnedType : Any>(
     }
 
     fun setParamsForPath(params: Map<String, String>): Returns<ReturnedType> {
-        if (model.path.isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
-        var newPath: String = model.path!!
+        if (model.getCurrentPath().isNullOrEmpty()) throw Exceptions.NoParamsException("Path is null")
+        var newPath: String = model.getCurrentPath()!!
         if (newPath[0] == '/') newPath = newPath.substring(1, newPath.length)
         params.forEach { (t, u) -> newPath = newPath.replace("@", "").replaceIfExists(t, u) }
-        model.path = newPath
+        model.setTempPath(newPath)
         return this
     }
 }

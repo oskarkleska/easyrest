@@ -13,19 +13,34 @@ open class EndpointModel(
     var formParams: MutableMap<String, Any>? = null,
     var requirements: Requirements? = null,
 ) {
-    val pathPattern = path
+    private val pathPattern = path
+    private var tempPathPattern: String? = pathPattern
     val queryParamsPattern = queryParams
     private var tempRequirements: Requirements? = requirements
+    private var tempPath: String? = path
     fun setTempRequirements(requirements: Requirements?) {
         this.tempRequirements = requirements
+    }
+    fun setTempPath(path: String?) {
+        this.tempPath = path
+        this.tempPathPattern = path
     }
 
     fun getCurrentRequirements(): Requirements? {
         return if (tempRequirements != null) tempRequirements else requirements
     }
 
-    fun resetRequirements() {
+    fun resetModel() {
         this.tempRequirements = requirements
+        this.tempPath = path
+    }
+
+    fun getCurrentPath(): String? {
+        return if(tempPath != null) tempPath else path
+    }
+
+    fun getCurrentPathPattern(): String? {
+        return if(tempPathPattern != null) tempPathPattern else pathPattern
     }
 }
 

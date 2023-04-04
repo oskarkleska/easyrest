@@ -68,10 +68,13 @@ class CCCTest : BaseWiremockTest(){
     }
 
     @Test
-    fun overrideWorksForAllRequestsInOneCC() {
+    fun overrideRequirementsAndPathWorksForAllRequestsInOneCC() {
         stubGetWithRetriesForOverridenRequirements()
+        stubGetWithRetries()
         val retries = Retries()
         retries.overridenReqsHPs()
         retries.go() // todo fix issue with permanent overriding model of an existing endpoint definition
+        // so far overriding is fixed for requirements and path.
+        // to fix: headers, body, cookies, queryParams, formParams
     }
 }

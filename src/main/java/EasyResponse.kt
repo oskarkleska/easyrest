@@ -34,7 +34,7 @@ data class EasyResponse(val response: Response, val model: EndpointModel) {
                 }
             }
         )
-        model.resetRequirements()
+        model.resetModel()
         return this
     }
 
@@ -48,11 +48,11 @@ data class EasyResponse(val response: Response, val model: EndpointModel) {
 
     private fun getCalledEndpoint(): String {
         val params = if (model.queryParams.isNullOrEmpty()) "" else "?${model.queryParams.toString()}"
-        return "${model.method} ${model.baseUri}${model.path}$params"
+        return "${model.method} ${model.baseUri}${model.getCurrentPath()}$params"
     }
 
     fun getEndpointPattern(): String {
         val params = if (model.queryParamsPattern.isNullOrEmpty()) "" else "?${model.queryParamsPattern}"
-        return "${model.method} ${model.baseUri}${model.pathPattern}$params"
+        return "${model.method} ${model.baseUri}${model.getCurrentPathPattern()}$params"
     }
 }
