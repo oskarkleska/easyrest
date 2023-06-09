@@ -5,4 +5,5 @@ object Exceptions {
     class ArgumentNotFoundException(msg: String? = null) : RuntimeException(msg)
     class EasyRestException(msg: String? = null) : RuntimeException(msg)
     class ResponseCastException(msg: String? = null) : RuntimeException(msg)
+    class UnsupportedTypeException(msg: String? = null) : RuntimeException(msg)
 }

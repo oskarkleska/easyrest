@@ -3,9 +3,8 @@ package tests.callcheckandcast
 import Utils.softAssertions
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.junit.jupiter.api.*
+import src.endpoints.ccc.CCCEndpoints
 import src.model.*
-import src.endpoints.ccc.GetSimpleResponse
-import src.endpoints.ccc.Retries
 import stubs.callcheckandcast.CCCStubs.stubGetCCC
 import stubs.callcheckandcast.CCCStubs.stubGetWithRetries
 import stubs.callcheckandcast.CCCStubs.stubGetWithRetriesForOverridenRequirements
@@ -19,7 +18,7 @@ class CCCTest : BaseWiremockTest(){
     @Test
     fun castResponseToClassHP() {
         stubGetCCC()
-        val simpleResponse = GetSimpleResponse().go()
+        val simpleResponse = CCCEndpoints().GetSimpleResponse().go()
         assert(simpleResponse.id == "uniqueId")
         assert(simpleResponse.name == "uniqueName")
         assert(simpleResponse.number == 123)
@@ -29,7 +28,7 @@ class CCCTest : BaseWiremockTest(){
     fun castResponseToClassFail() {
         stubGetCCC()
         assertThrows<Exceptions.ResponseCastException>("Response cannot be cast to WrongResponseForCasting"){
-            GetSimpleResponse().failCasting()
+            CCCEndpoints().GetSimpleResponse().failCasting()
         }
     }
 
@@ -46,14 +45,14 @@ class CCCTest : BaseWiremockTest(){
     @Test
     fun retriesHP() {
         stubGetWithRetries()
-        Retries().go()
+        CCCEndpoints().Retries().go()
     }
 
     @Test
     fun retriesFailOnCode() {
         stubGetWithRetries()
         assertThrows<AssertionError>("Wrong status code calling GET localhost:8080/ccc/retries, expected 200 but got 404"){
-            Retries().failCode404()
+            CCCEndpoints().Retries().failCode404()
         }
     }
 
@@ -61,7 +60,7 @@ class CCCTest : BaseWiremockTest(){
     fun retriesFailOnResponseTime() {
         stubGetWithRetries()
         softAssertions.removeAll{true}
-        Retries().failTime()
+        CCCEndpoints().Retries().failTime()
         assert(softAssertions.size == 1)
         assert(softAssertions[0].startsWith("Too long response time calling GET localhost:8080/ccc/retries, expected 1ms"))
         softAssertions.removeAt(0)
@@ -71,7 +70,7 @@ class CCCTest : BaseWiremockTest(){
     fun overrideRequirementsAndPathWorksForAllRequestsInOneCC() {
         stubGetWithRetriesForOverridenRequirements()
         stubGetWithRetries()
-        val retries = Retries()
+        val retries = CCCEndpoints().Retries()
         retries.overridenReqsHPs()
         retries.go() // todo fix issue with permanent overriding model of an existing endpoint definition
         // so far overriding is fixed for requirements and path.

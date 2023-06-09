@@ -1,19 +1,17 @@
 package tests.params
 
-import EndpointModel
 import Exceptions
-import Protocol
 import Returns
 import io.restassured.http.Method
+import models.Protocol
+import models.ServiceModel
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.DefaultAsserter.assertEquals
 
 class SetParamsTest {
 
-    private class DummyModel : EndpointModel(Method.GET, Protocol.HTTPS, "zzz")
-
-    private val dummy = Returns<String>(DummyModel())
+    private val dummy = Returns<String>(ServiceModel(Protocol.HTTP, "asd").EndpointModel(Method.GET))
 
     @Test
     fun checkSettingParamsForPathWithMap() {

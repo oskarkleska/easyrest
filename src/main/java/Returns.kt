@@ -2,17 +2,20 @@ import Utils.putAllNotDuplicate
 import Utils.replaceIfExists
 import Utils.retry
 import helpers.HttpConfig
+import helpers.ReportingApi
 import io.restassured.RestAssured
 import io.restassured.RestAssured.given
 import io.restassured.http.Cookies
 import io.restassured.parsing.Parser
 import io.restassured.response.Response
 import io.restassured.specification.RequestSpecification
+import models.Requirements
+import models.ServiceModel
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
 open class Returns<ReturnedType : Any>(
-    val model: EndpointModel,
+    val model: ServiceModel.EndpointModel,
     val loggingConfig: LoggingConfig = TestManager.getConfig().loggingConfig,
     val httpConfig: HttpConfig = HttpConfig(),
     var classToken: Class<ReturnedType>,
@@ -24,17 +27,18 @@ open class Returns<ReturnedType : Any>(
     init {
         RestAssured.defaultParser = Parser.JSON
     }
+
     companion object {
 
         inline operator fun <reified ReturnedType : Any> invoke(
-            model: EndpointModel,
+            model: ServiceModel.EndpointModel,
         ): Returns<ReturnedType> = Returns(
             model = model,
             classToken = ReturnedType::class.java
         )
 
         inline operator fun <reified ReturnedType : Any> invoke(
-            model: EndpointModel,
+            model: ServiceModel.EndpointModel,
             httpConfig: HttpConfig,
         ): Returns<ReturnedType> = Returns(
             model = model,
@@ -43,7 +47,7 @@ open class Returns<ReturnedType : Any>(
         )
 
         inline operator fun <reified ReturnedType : Any> invoke(
-            model: EndpointModel,
+            model: ServiceModel.EndpointModel,
             loggingConfig: LoggingConfig,
         ): Returns<ReturnedType> = Returns(
             model = model,
@@ -52,7 +56,7 @@ open class Returns<ReturnedType : Any>(
         )
 
         inline operator fun <reified ReturnedType : Any> invoke(
-            model: EndpointModel,
+            model: ServiceModel.EndpointModel,
             httpConfig: HttpConfig,
             loggingConfig: LoggingConfig,
         ): Returns<ReturnedType> = Returns(
@@ -98,7 +102,7 @@ open class Returns<ReturnedType : Any>(
                             easyResponse.response
                         )
                     )
-                ) { "Polling condition not met on endpoint ${easyResponse.getEndpointPattern()} after ${i+1 * interval / 1000} seconds" }
+                ) { "Polling condition not met on endpoint ${easyResponse.getEndpointPattern()} after ${i + 1 * interval / 1000} seconds" }
                 return responseObject
             } catch (e: AssertionError) {
                 if (i + 1 < times) {
@@ -127,6 +131,17 @@ open class Returns<ReturnedType : Any>(
         response = rsp
             .request(model.method, model.getCurrentPath() ?: "")
             .then().extract().response()
+        ReportingApi.registerNewEndpoint(
+            model.serviceName,
+            ReportingApi.EndpointModelReport(
+                name = model::class.java.simpleName,
+                method = model.method,
+                path = model.getPathPattern(),
+                url = model.getBaseUri() + "/" + model.getPathPattern(),
+                headers = model.headers?.map { it.key },
+                queryParams = model.queryParams?.map { it.key }
+            )
+        )
         return EasyResponse(response, model)
     }
 
@@ -140,7 +155,7 @@ open class Returns<ReturnedType : Any>(
         if (model.cookies != null) rsp.cookies(model.cookies)
         if (model.queryParams != null) rsp.queryParams(model.queryParams)
         if (model.formParams != null) rsp.formParams(model.formParams)
-        rsp.baseUri(model.protocol.protocolPart + model.baseUri)
+        rsp.baseUri(model.getProtocol().protocolPart + model.getBaseUri())
     }
 
     /**

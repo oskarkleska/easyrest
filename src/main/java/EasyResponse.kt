@@ -1,9 +1,10 @@
 import Utils.softAssert
 import io.restassured.response.Response
+import models.ServiceModel
 import net.pwall.json.schema.JSONSchema
 import org.junit.jupiter.api.Assertions.assertAll
 
-data class EasyResponse(val response: Response, val model: EndpointModel) {
+data class EasyResponse(val response: Response, val model: ServiceModel.EndpointModel) {
 
     fun validate(): EasyResponse {
         val requirements = model.getCurrentRequirements() ?: return this
@@ -48,11 +49,11 @@ data class EasyResponse(val response: Response, val model: EndpointModel) {
 
     private fun getCalledEndpoint(): String {
         val params = if (model.queryParams.isNullOrEmpty()) "" else "?${model.queryParams.toString()}"
-        return "${model.method} ${model.baseUri}${model.getCurrentPath()}$params"
+        return "${model.method} ${model.getBaseUri()}${model.getCurrentPath()}$params"
     }
 
     fun getEndpointPattern(): String {
         val params = if (model.queryParamsPattern.isNullOrEmpty()) "" else "?${model.queryParamsPattern}"
-        return "${model.method} ${model.baseUri}${model.getCurrentPathPattern()}$params"
+        return "${model.method} ${model.getBaseUri()}${model.getCurrentPathPattern()}$params"
     }
 }

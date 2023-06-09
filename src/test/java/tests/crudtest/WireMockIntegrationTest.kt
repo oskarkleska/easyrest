@@ -3,8 +3,10 @@ package tests.crudtest
 import Exceptions
 import Utils.softAssertions
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import helpers.ReportingApi
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertTrue
 import src.endpoints.crud.*
 import src.model.*
 import stubs.crudtest.CrudStubs.stubDeleteResource
@@ -27,10 +29,9 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     fun getBrandNewDashboardId() {
         stubGetDashboardId()
         dashboardId =
-            WMCrudGetDashboard().positive().response.headers.find { it.name == "Set-Cookie" }?.value?.split(";")
+            WMCrud().WMCrudGetDashboard().positive().response.headers.find { it.name == "Set-Cookie" }?.value?.split(";")
                 ?.find { it.startsWith("UniqueEndpointId") }?.split("=")?.get(1)
                 ?: throw Exceptions.ArgumentNotFoundException("No dashboard Id found in response")
-        assert(dashboardId == "123") { "Wrong dashboard id obtained, got $dashboardId" }
     }
 
     @AfterAll
@@ -42,7 +43,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(1)
     fun createResource() {
         stubPost(dashboardId, newResource)
-        val resp = WMCrudPost().positive(dashboardId, newResource).ccc()
+        val resp = WMCrud().WMCrudPost().positive(dashboardId, newResource)
         this.id = resp._id
     }
 
@@ -50,7 +51,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(2)
     fun getResource() {
         stubGetResource(dashboardId, id)
-        val rsp = WMCrudGet().positive(id, dashboardId).ccc()
+        val rsp = WMCrud().WMCrudGet().positive(id, dashboardId)
         assertAll("Checking if resource is updated correctly",
             { assert(rsp.isTrue == newResource.isTrue) },
             { assert(rsp.name == newResource.name) },
@@ -63,14 +64,14 @@ class WireMockIntegrationTest : BaseWiremockTest() {
         val updatedResource = newResource
         updatedResource.isTrue = false
         stubPutResource(dashboardId, id, updatedResource)
-        WMCrudUpdate().positive(id, dashboardId, updatedResource).cc()
+        WMCrud().WMCrudUpdate().positive(id, dashboardId, updatedResource)
     }
 
     @Test
     @Order(4)
     fun getUpdatedResource() {
         stubGetResource(dashboardId, id)
-        val rsp = WMCrudGet().positive(id, dashboardId).ccc()
+        val rsp = WMCrud().WMCrudGet().positive(id, dashboardId)
         assert(!rsp.isTrue)
         assert(rsp.name == newResource.name)
         assert(rsp.count == newResource.count)
@@ -80,13 +81,24 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(5)
     fun deleteResource() {
         stubDeleteResource(dashboardId, id)
-        WMCrudDelete().positive(id, dashboardId).cc()
+        WMCrud().WMCrudDelete().positive(id, dashboardId)
     }
 
     @Test
     @Order(6)
     fun get404NoResource() {
         stubGetResource(dashboardId, id)
-        WMCrudGet().notFound(id, dashboardId)
+        WMCrud().WMCrudGet().notFound(id, dashboardId)
+    }
+
+    @Test
+    @Order(7)
+    fun verifyReportingApi() {
+        val services = ReportingApi.getAllTestedServices()
+        assertTrue(services.size == 1,"Wrong amount of services tested, we're testing only one service")
+        assertTrue(services.toList()[0].endpoints.size == 5, "Something went wrong with calculating amount of endpoints")
+        val allTestedEndpoints = ReportingApi.getAllTestedEndpoints()
+        val filteredEndpoints = ReportingApi.getAllTestedEndpoints(WMCrud::class.java)
+        assertTrue(allTestedEndpoints == filteredEndpoints, "Tested endpoints in reporting api do not match")
     }
 }

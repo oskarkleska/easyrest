@@ -13,11 +13,14 @@ import kotlin.collections.ArrayList
 object CrudStubs {
     private val resourceList: ArrayList<RandomResourceResponse> = arrayListOf()
 
-    fun stubGetDashboardId(): StubMapping = stubFor(
-        get(urlEqualTo("/")).willReturn(
-            aResponse().withHeader("Set-Cookie", "UniqueEndpointId=123")
+    fun stubGetDashboardId(): StubMapping {
+        val randomId = UUID.randomUUID().toString()
+        return stubFor(
+            get(urlEqualTo("/")).willReturn(
+                aResponse().withHeader("Set-Cookie", "UniqueEndpointId=$randomId")
+            )
         )
-    )
+    }
 
     fun stubPost(dashboardId: String, resource: RandomResource): StubMapping {
         val id = resourceList.add(resource)
@@ -89,6 +92,7 @@ object CrudStubs {
         resourceList.removeIf { it._id == id }
         resourceList.add(element)
     }
+
     private fun toJson(obj: Any) = Gson().toJson(obj)
 
 }
