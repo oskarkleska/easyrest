@@ -63,7 +63,7 @@ object CrudStubs {
     }
 
     fun stubDeleteResource(dashboardId: String, id: String): StubMapping {
-        resourceList.removeIf { it._id == id } ?: throw NoSuchElementException("Element not found")
+        resourceList.removeIf { it._id == id }
         return stubFor(
             delete(urlMatching("^/api/$dashboardId/resource/$id$")).willReturn(
                 aResponse().withStatus(200)

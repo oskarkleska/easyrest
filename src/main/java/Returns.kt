@@ -137,8 +137,8 @@ open class Returns<ReturnedType : Any>(
                 name = model::class.java.simpleName,
                 method = model.method,
                 path = model.getPathPattern(),
-                url = model.getBaseUri() + "/" + model.getPathPattern(),
-                headers = model.headers?.map { it.key },
+                url = model.getProtocol().protocolPart + model.getBaseUri() + "/" + (model.getPathPattern() ?: ""),
+                headers = model.headers,
                 queryParams = model.queryParams?.map { it.key }
             )
         )

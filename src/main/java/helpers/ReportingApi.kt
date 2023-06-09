@@ -2,10 +2,23 @@ package helpers
 
 import io.restassured.http.Method
 import models.Protocol
+import java.security.Provider.Service
 
 object ReportingApi {
 
     private val testedServices: MutableSet<ServiceModelReport> = mutableSetOf()
+
+    fun MutableSet<ServiceModelReport>.prettyPrint() {
+        println(this.prettyString())
+    }
+
+    fun MutableSet<ServiceModelReport>.prettyString(): String {
+        var str = "---TestedServices---:\n"
+        this.forEach{
+            str += it.toString()
+        }
+        return str
+    }
 
     fun getAllTestedServices(): MutableSet<ServiceModelReport> {
         return testedServices
@@ -46,6 +59,16 @@ object ReportingApi {
             } else false
         }
 
+        private fun MutableSet<EndpointModelReport>.prettyString(): String {
+            var str = ""
+            this.forEach { str += it }
+            return str
+        }
+
+        override fun toString(): String {
+            return "- [$name]: ${protocol.protocolPart}$baseUri:\n\tEndpoints: ${endpoints.prettyString()}\n"
+        }
+
         override fun hashCode(): Int {
             var result = name.hashCode()
             result = 31 * result + protocol.hashCode()
@@ -60,6 +83,12 @@ object ReportingApi {
         val url: String,
         val method: Method,
         val queryParams: List<String>?,
-        val headers: List<String>?
-    )
+        val headers: Map<String, Any>?
+    ) {
+        override fun toString(): String {
+            return "\n\t\t- [$name]:\n\t\tpath: ${path ?: "-"}\n\t\turl: $url\n\t\tmethod: $method\n\t\tqueryParams: ${queryParams?:""}\n\t\theaders: ${headers?: ""}"
+        }
+
+
+    }
 }

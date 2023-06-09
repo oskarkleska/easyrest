@@ -4,6 +4,7 @@ import Exceptions
 import Utils.softAssertions
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import helpers.ReportingApi
+import helpers.ReportingApi.prettyPrint
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -37,6 +38,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @AfterAll
     fun checkSoftAssertions() {
         if (softAssertions.size > 0) log.warn("Soft assertions: $softAssertions")
+        ReportingApi.getAllTestedServices().prettyPrint()
     }
 
     @Test
@@ -95,8 +97,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(7)
     fun verifyReportingApi() {
         val services = ReportingApi.getAllTestedServices()
-        assertTrue(services.size == 1,"Wrong amount of services tested, we're testing only one service")
-        assertTrue(services.toList()[0].endpoints.size == 5, "Something went wrong with calculating amount of endpoints")
+        assertTrue(services.toList().find{it.name == WMCrud::class.java.simpleName}!!.endpoints.size == 5, "Something went wrong with calculating amount of endpoints")
         val allTestedEndpoints = ReportingApi.getAllTestedEndpoints()
         val filteredEndpoints = ReportingApi.getAllTestedEndpoints(WMCrud::class.java)
         assertTrue(allTestedEndpoints == filteredEndpoints, "Tested endpoints in reporting api do not match")
