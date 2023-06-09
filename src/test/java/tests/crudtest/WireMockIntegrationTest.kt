@@ -30,7 +30,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     fun getBrandNewDashboardId() {
         stubGetDashboardId()
         dashboardId =
-            WMCrud().WMCrudGetDashboard().positive().response.headers.find { it.name == "Set-Cookie" }?.value?.split(";")
+            WiremockStubService().GetDashboard().positive().response.headers.find { it.name == "Set-Cookie" }?.value?.split(";")
                 ?.find { it.startsWith("UniqueEndpointId") }?.split("=")?.get(1)
                 ?: throw Exceptions.ArgumentNotFoundException("No dashboard Id found in response")
     }
@@ -45,7 +45,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(1)
     fun createResource() {
         stubPost(dashboardId, newResource)
-        val resp = WMCrud().WMCrudPost().positive(dashboardId, newResource)
+        val resp = WiremockStubService().CreateNewResource().positive(dashboardId, newResource)
         this.id = resp._id
     }
 
@@ -53,7 +53,7 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(2)
     fun getResource() {
         stubGetResource(dashboardId, id)
-        val rsp = WMCrud().WMCrudGet().positive(id, dashboardId)
+        val rsp = WiremockStubService().GetResourceById().positive(id, dashboardId)
         assertAll("Checking if resource is updated correctly",
             { assert(rsp.isTrue == newResource.isTrue) },
             { assert(rsp.name == newResource.name) },
@@ -66,14 +66,14 @@ class WireMockIntegrationTest : BaseWiremockTest() {
         val updatedResource = newResource
         updatedResource.isTrue = false
         stubPutResource(dashboardId, id, updatedResource)
-        WMCrud().WMCrudUpdate().positive(id, dashboardId, updatedResource)
+        WiremockStubService().UpdateResource().positive(id, dashboardId, updatedResource)
     }
 
     @Test
     @Order(4)
     fun getUpdatedResource() {
         stubGetResource(dashboardId, id)
-        val rsp = WMCrud().WMCrudGet().positive(id, dashboardId)
+        val rsp = WiremockStubService().GetResourceById().positive(id, dashboardId)
         assert(!rsp.isTrue)
         assert(rsp.name == newResource.name)
         assert(rsp.count == newResource.count)
@@ -83,23 +83,23 @@ class WireMockIntegrationTest : BaseWiremockTest() {
     @Order(5)
     fun deleteResource() {
         stubDeleteResource(dashboardId, id)
-        WMCrud().WMCrudDelete().positive(id, dashboardId)
+        WiremockStubService().DeleteResource().positive(id, dashboardId)
     }
 
     @Test
     @Order(6)
     fun get404NoResource() {
         stubGetResource(dashboardId, id)
-        WMCrud().WMCrudGet().notFound(id, dashboardId)
+        WiremockStubService().GetResourceById().notFound(id, dashboardId)
     }
 
     @Test
     @Order(7)
     fun verifyReportingApi() {
         val services = ReportingApi.getAllTestedServices()
-        assertTrue(services.toList().find{it.name == WMCrud::class.java.simpleName}!!.endpoints.size == 5, "Something went wrong with calculating amount of endpoints")
+        assertTrue(services.toList().find{it.name == WiremockStubService::class.java.simpleName}!!.endpoints.size == 5, "Something went wrong with calculating amount of endpoints")
         val allTestedEndpoints = ReportingApi.getAllTestedEndpoints()
-        val filteredEndpoints = ReportingApi.getAllTestedEndpoints(WMCrud::class.java)
+        val filteredEndpoints = ReportingApi.getAllTestedEndpoints(WiremockStubService::class.java)
         assertTrue(allTestedEndpoints == filteredEndpoints, "Tested endpoints in reporting api do not match")
     }
 }

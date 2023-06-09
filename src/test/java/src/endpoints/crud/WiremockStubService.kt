@@ -11,17 +11,17 @@ import tests.crudtest.RandomResourceResponse
 private const val URI = "localhost:8080"
 private const val PATH = "api/@dashboardId"
 
-class WMCrud: ServiceModel(protocol = Protocol.HTTP, baseUri = URI) {
+class WiremockStubService: ServiceModel(protocol = Protocol.HTTP, baseUri = URI) {
 
 
-    inner class WMCrudGetDashboard : EndpointModel(
+    inner class GetDashboard : EndpointModel(
         method = GET,
         requirements = Requirements(statusCode = 200, responseTime = 2000L)
     ) {
         fun positive() = Returns<Unit>(this).cc()
     }
 
-    inner class WMCrudPost : EndpointModel(
+    inner class CreateNewResource : EndpointModel(
         method = POST,
         path = "$PATH/resource",
         headers = mutableMapOf("Content-Type" to "application/json"),
@@ -35,13 +35,7 @@ class WMCrud: ServiceModel(protocol = Protocol.HTTP, baseUri = URI) {
         }
     }
 
-    inner class WMCrudGetAll : EndpointModel(
-        GET,
-        path = "$PATH/@resource",
-        requirements = Requirements(statusCode = 200, responseTime = 300L)
-    )
-
-    inner class WMCrudGet : EndpointModel(
+    inner class GetResourceById : EndpointModel(
         GET,
         path = "$PATH/resource/@id",
         requirements = Requirements(statusCode = 200, responseTime = 300L)
@@ -62,7 +56,7 @@ class WMCrud: ServiceModel(protocol = Protocol.HTTP, baseUri = URI) {
         }
     }
 
-    inner class WMCrudUpdate : EndpointModel(
+    inner class UpdateResource : EndpointModel(
         PUT,
         path = "$PATH/resource/@id",
         headers = mutableMapOf("Content-Type" to "application/json"),
@@ -75,7 +69,7 @@ class WMCrud: ServiceModel(protocol = Protocol.HTTP, baseUri = URI) {
         }
     }
 
-    inner class WMCrudDelete : EndpointModel(
+    inner class DeleteResource : EndpointModel(
         DELETE,
         "$PATH/resource/@id",
         requirements = Requirements(statusCode = 200, responseTime = 1000L)
